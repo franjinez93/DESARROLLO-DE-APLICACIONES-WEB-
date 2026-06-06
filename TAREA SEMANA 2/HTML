@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FARMACIA</title>
+</head>
+<body>
+    <h1>Farmacia Central</h1>
+    <h2>Medicamentos y Productos de Salud</h2>
+    <h3>Medicamentos Genericos</h3>
+    <p>Contamos con una amplia variedad de medicamentos genericos a precios accesibles.</p>
+    <h3>Medicamentos de Marca</h3>
+    <p>Disponemos de los principales medicamentos de marca recetados por su medico.</p>
+    <h3>Productos de Cuidado Personal</h3>
+    <p>Encontrara shampoos, cremas, vitaminas y suplementos para su bienestar diario.</p>
+    <h3>Servicio de Farmaceutico</h3>
+    <p>Nuestro equipo de farmaceuticos esta disponible para orientarle sobre el uso correcto de sus medicamentos.</p>
+</body>  
+</html>
+
