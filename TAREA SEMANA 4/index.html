@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farmacia Central</title>
+
+  <!-- Bootstrap CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Hoja de estilos externa CSS3 -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1>Farmacia Central</h1>
+  </header>
+
+  <!-- NAVBAR BOOTSTRAP RESPONSIVO -->
+  <nav class="navbar navbar-expand-md navbar-dark">
+    <div class="container">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#inicio">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="#quienes-somos">Quiénes Somos</a></li>
+          <li class="nav-item"><a class="nav-link" href="#servicios">Servicios o Productos</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="container my-4">
+
+    <!-- SECCIÓN INICIO -->
+    <section id="inicio" class="text-center p-3">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+          <h2>Inicio</h2>
+          <p>Bienvenido a Farmacia Central, tu farmacia de confianza. Nos dedicamos a cuidar la salud de tu familia
+            ofreciendo medicamentos, productos de cuidado personal y atención farmacéutica de calidad.
+            Aquí encontrarás todo lo que necesitas para tu bienestar.</p>
+          <a href="#servicios" class="btn btn-primary m-3" aria-label="Ver servicios">Ver Servicios</a>
+          <a href="#contacto" class="btn btn-outline-primary m-3" aria-label="Contactarnos">Contáctanos</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN QUIÉNES SOMOS -->
+    <section id="quienes-somos" class="p-3">
+      <h2>Quiénes Somos</h2>
+      <div class="row align-items-center">
+        <div class="col-12 col-md-7">
+          <p>Farmacia Central es un establecimiento farmacéutico con más de 20 años de experiencia al servicio de la
+            comunidad. Contamos con un equipo de farmacéuticos y profesionales de la salud altamente capacitados,
+            comprometidos con brindar una atención personalizada y responsable. Nuestra farmacia ofrece una amplia
+            variedad de medicamentos genéricos y de marca, productos naturales, suplementos vitamínicos, artículos de
+            cuidado personal e higiene, y equipos médicos para uso doméstico.
+            Nos caracterizamos por mantener precios accesibles, stock permanente y un servicio cálido y humano.
+            Creemos que la salud es el bien más preciado, y por eso trabajamos cada día para que nuestros clientes
+            encuentren todo lo que necesitan en un solo lugar, con la confianza y seguridad que merecen.</p>
+        </div>
+        <div class="col-12 col-md-5 text-center">
+          <img src="https://img.magnific.com/foto-gratis/farmaceutica-joven-hispana-sonriendo-segura-pie-gesto-brazos-cruzados-farmacia_839833-7087.jpg?semt=ais_hybrid&w=740&q=80"
+            alt="Farmacia Central" class="img-fluid">
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN SERVICIOS O PRODUCTOS (TARJETAS BOOTSTRAP) -->
+    <section id="servicios" class="p-3">
+      <h2>Servicios o Productos</h2>
+      <div class="row g-3">
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">💊 Medicamentos</h5>
+              <p class="card-text">Genéricos y de marca con garantía de calidad y a precios accesibles.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">🌿 Productos Naturales</h5>
+              <p class="card-text">Suplementos vitamínicos y productos naturales para tu bienestar.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">🧴 Cuidado Personal</h5>
+              <p class="card-text">Artículos de cuidado personal e higiene de las mejores marcas.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">🩺 Equipos Médicos</h5>
+              <p class="card-text">Equipos médicos para uso doméstico: tensiómetros, glucómetros y más.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">👨‍⚕️ Atención Farmacéutica</h5>
+              <p class="card-text">Asesoría personalizada de nuestros farmacéuticos certificados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="card h-100 p-3 text-center">
+            <div class="card-body">
+              <h5 class="card-title">🚚 Servicio a Domicilio</h5>
+              <p class="card-text">Entregas a domicilio disponibles en toda la ciudad rápido y seguro.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Lista original conservada -->
+      <ul class="servicios-lista mt-4">
+        <li>Medicamentos genéricos y de marca</li>
+        <li>Productos naturales y suplementos vitamínicos</li>
+        <li>Artículos de cuidado personal e higiene</li>
+        <li>Equipos médicos para uso doméstico</li>
+        <li>Atención farmacéutica personalizada</li>
+      </ul>
+    </section>
+
+    <!-- ARTÍCULO DESTACADO -->
+    <article class="my-4">
+      <h2>Artículo Destacado</h2>
+      <p>Conoce nuestras últimas promociones en medicamentos y productos de salud. Mantente informado sobre los cuidados
+        esenciales para tu bienestar y el de tu familia.</p>
+      <a href="#contacto" class="btn btn-primary" aria-label="Ver promociones">Ver Promociones</a>
+    </article>
+
+    <!-- ASIDE + VIDEO -->
+    <div class="row g-3 my-2">
+      <div class="col-12 col-md-5">
+        <aside>
+          <h3>Información Complementaria</h3>
+          <p><strong>Promoción:</strong> 15% de descuento en medicamentos genéricos todos los martes.</p>
+          <p><strong>Horarios de atención:</strong> Lunes a Viernes de 7:00 a 21:00</p>
+          <p><strong>Sábados y Domingos:</strong> 8:00 a 18:00</p>
+          <p><strong>Servicio a domicilio</strong> disponible en toda la ciudad.</p>
+        </aside>
+      </div>
+      <div class="col-12 col-md-7 text-center">
+        <iframe width="100%" height="315"
+          src="https://www.youtube.com/embed/d1Up8I-0vzI?si=Zuj4SDmWYhfrTKak"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <!-- SECCIÓN CONTACTO CON FORMULARIO -->
+    <section id="contacto" class="p-3">
+      <h2>Contacto</h2>
+      <div class="row g-4">
+        <div class="col-12 col-md-6">
+          <p>Correo electrónico: <a href="mailto:contacto@farmaciacentral.com">contacto@farmaciacentral.com</a></p>
+          <p>Teléfono: <a href="tel:+593983737588">+593 98 373 7588</a></p>
+          <p>Dirección: Av. 10 de Agosto 456, Quito, Ecuador</p>
+          <p>
+            <a href="https://www.facebook.com" target="_blank" class="btn btn-outline-primary btn-sm m-1">Facebook</a>
+            <a href="https://www.instagram.com" target="_blank" class="btn btn-outline-danger btn-sm m-1">Instagram</a>
+            <a href="https://www.twitter.com" target="_blank" class="btn btn-outline-info btn-sm m-1">Twitter</a>
+          </p>
+        </div>
+        <div class="col-12 col-md-6">
+          <!-- Formulario responsivo Bootstrap -->
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" placeholder="Tu nombre completo">
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="email" placeholder="tucorreo@ejemplo.com">
+          </div>
+          <div class="mb-3">
+            <label for="asunto" class="form-label">Asunto</label>
+            <input type="text" class="form-control" id="asunto" placeholder="Asunto del mensaje">
+          </div>
+          <div class="mb-3">
+            <label for="mensaje" class="form-label">Mensaje</label>
+            <textarea class="form-control" id="mensaje" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+          </div>
+          <button class="btn btn-primary" aria-label="Enviar formulario">Enviar Mensaje</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p class="m-0">Farmacia Central &copy; 2024 | Estudiante: Edgar Francisco Jinez Montesdeoca | Asignatura: Desarrollo de Aplicaciones Web | Año: 2026</p>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
