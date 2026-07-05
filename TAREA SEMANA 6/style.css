@@ -1,0 +1,269 @@
+/* ============================================================
+   FARMACIA CENTRAL - style.css
+   Estilos CSS3 personalizados
+   Estudiante: Edgar Francisco Jinez Montesdeoca
+   Asignatura: Desarrollo de Aplicaciones Web | Año: 2026
+   ============================================================ */
+
+/* =====================
+   GOOGLE FONTS
+===================== */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* =====================
+   ESTILOS GENERALES
+===================== */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 10px;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* =====================
+   HEADER
+===================== */
+header {
+  background: linear-gradient(to right, #5192f4, #b7ecf7);
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+header h1 {
+  font-size: 2.5em;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+/* =====================
+   NAVBAR
+===================== */
+nav.navbar {
+  background-color: #86d076;
+}
+
+nav.navbar .nav-link {
+  color: white !important;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+nav.navbar .nav-link:hover {
+  color: #65c91e !important;
+}
+
+/* =====================
+   SECCIONES
+===================== */
+section {
+  padding: 40px 0;
+}
+
+section h2 {
+  color: #309c15;
+  border-left: 5px solid #0df01c;
+  padding-left: 10px;
+  margin-bottom: 20px;
+}
+
+/* =====================
+   IMAGEN RESPONSIVA
+===================== */
+.img-fluid {
+  border-radius: 10px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* =====================
+   CARDS DE SERVICIOS
+===================== */
+.card {
+  border-radius: 12px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s, box-shadow 0.3s;
+  border: none;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.card-title {
+  color: #0d6efd;
+  font-weight: 700;
+}
+
+/* =====================
+   BOTONES
+===================== */
+.btn-primary {
+  background: linear-gradient(to right, #0d6efd, #0dcaf0);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.btn-primary:hover {
+  transform: scale(1.1);
+  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(to right, #0dcaf0, #0d6efd);
+}
+
+/* =====================
+   ASIDE
+===================== */
+aside {
+  background-color: #e9f5ff;
+  border-left: 5px solid #0d6efd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+aside h3 {
+  color: #0d6efd;
+}
+
+/* =====================
+   IFRAME (VIDEO)
+===================== */
+iframe {
+  border-radius: 10px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* =====================
+   ARTÍCULO DESTACADO
+===================== */
+article {
+  background-color: #fff3cd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+article h2 {
+  color: #856404;
+  border-left: 5px solid #ffc107;
+  padding-left: 10px;
+}
+
+/* =====================
+   FORMULARIO DE CONTACTO
+===================== */
+#contacto .form-control {
+  border-radius: 8px;
+  border: 1px solid #0d6efd;
+}
+
+#contacto .form-control:focus {
+  box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+}
+
+/* =====================
+   FOOTER
+===================== */
+footer {
+  background: linear-gradient(to right, #0d6efd, #0dcaf0);
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  margin-top: 40px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================
+   SELECTORES AVANZADOS CSS3
+   (Del PDF - Subtema 1.2.1)
+   ============================================================ */
+
+/* Selector de atributo: Links que comienzan con "https" */
+a[href^="https"] {
+  color: #0d6efd;
+}
+
+/* Selector estructural: Segundo elemento de la lista */
+.servicios-lista li:nth-child(2) {
+  color: #0d6efd;
+  font-weight: bold;
+}
+
+/* Combinador: Primer párrafo después de un h2 */
+h2 + p {
+  color: #444;
+}
+
+/* Pseudo-clase: Botón al pasar el cursor - ya definido en .btn-primary:hover */
+
+/* Pseudo-elemento: Primera letra destacada en artículo */
+article p::first-letter {
+  font-size: 2em;
+  color: #0d6efd;
+  font-weight: bold;
+}
+
+/* ============================================================
+   MEDIA QUERIES CSS3
+   (Del PDF - Soporte para diseño responsivo)
+   ============================================================ */
+
+/* Estilo general (para todos los tamaños) */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 10px;
+  background-color: #f8f9fa;
+}
+
+/* Pantallas pequeñas (teléfonos) */
+@media (max-width: 600px) {
+  body {
+    background-color: #f0f8ff;
+    font-size: 14px;
+  }
+
+  header h1 {
+    font-size: 1.6em;
+  }
+
+  section h2 {
+    font-size: 1.3em;
+  }
+
+  aside {
+    margin-top: 20px;
+  }
+}
+
+/* Pantallas medianas (tabletas) */
+@media (min-width: 601px) and (max-width: 1024px) {
+  body {
+    background-color: #f8f9fa;
+    font-size: 16px;
+  }
+
+  header h1 {
+    font-size: 2em;
+  }
+}
+
+/* Pantallas grandes (escritorios) */
+@media (min-width: 1025px) {
+  body {
+    background-color: #f8f9fa;
+    font-size: 18px;
+  }
+
+  header h1 {
+    font-size: 2.5em;
+  }
+}
