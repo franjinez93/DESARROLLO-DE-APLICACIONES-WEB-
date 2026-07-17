@@ -12,6 +12,13 @@
 let totalProductos = 0;
 let carrito = [];
 
+// Arreglo de objetos que representa los "datos del proyecto" para la
+// sección dinámica del Panel de Pedidos (Semana 7). Cada objeto simula
+// el registro que en una futura versión con Flask vendría de una base
+// de datos y se recorrería en la plantilla con {% for pedido in pedidos %}.
+let pedidosRegistrados = [];
+let contadorIdPedido = 1;
+
 // =====================
 //  CATÁLOGO POR CATEGORÍA
 // =====================
@@ -63,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarFormularioSeleccion();
   inicializarCarrito();
   inicializarFormularioContacto();
+  inicializarPanelPedidos();
   actualizarContador();
 });
 
@@ -264,6 +272,21 @@ function inicializarCarrito() {
         mostrarMensaje("carrito-mensaje", "⚠️ Tu carrito está vacío.", "warning");
         return;
       }
+      // Cada producto del carrito se convierte en un registro dentro
+      // del arreglo dinámico "pedidosRegistrados" (contenido dinámico
+      // que se renderiza en la tabla del Panel de Pedidos).
+      carrito.forEach((item) => {
+        pedidosRegistrados.push({
+          id: contadorIdPedido++,
+          cliente: "Cliente Web",
+          producto: item.nombre,
+          cantidad: item.cantidad,
+          total: item.precio * item.cantidad,
+          estado: "Confirmado",
+        });
+      });
+      renderizarTablaPedidos();
+
       carrito = [];
       renderizarCarrito();
       actualizarBadgeCarrito();
@@ -343,6 +366,126 @@ function actualizarBadgeCarrito() {
   const totalItems = carrito.reduce((acc, p) => acc + p.cantidad, 0);
   badge.textContent = totalItems;
   badge.style.display = totalItems > 0 ? "inline-block" : "none";
+}
+
+// ============================================================
+//  3.5. PANEL DE PEDIDOS REGISTRADOS - CONTENIDO DINÁMICO (Semana 7)
+//       Renderiza un arreglo de objetos usando una ESTRUCTURA
+//       REPETITIVA (forEach) y una CONDICIÓN según el estado de
+//       los datos (si el arreglo está vacío o no). Además permite
+//       registrar nuevos datos desde un formulario.
+// ============================================================
+function inicializarPanelPedidos() {
+  const form           = document.getElementById("form-pedido");
+  const selectProducto = document.getElementById("pedido-producto");
+  const campoCliente   = document.getElementById("pedido-cliente");
+  const campoCantidad  = document.getElementById("pedido-cantidad");
+  if (!form || !selectProducto) return;
+
+  // Llenar el select de productos combinando todas las categorías
+  // del catálogo (mismo arreglo/objeto de datos ya usado en la tienda).
+  Object.keys(catalogoPorCategoria).forEach((categoria) => {
+    const grupo = document.createElement("optgroup");
+    grupo.label = categoria;
+    catalogoPorCategoria[categoria].forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.nombre;
+      opt.dataset.precio = p.precio;
+      opt.textContent = `${p.imagen} ${p.nombre} — $${p.precio.toFixed(2)}`;
+      grupo.appendChild(opt);
+    });
+    selectProducto.appendChild(grupo);
+  });
+
+  // Validaciones dinámicas en tiempo real (reutilizan las funciones
+  // de la sección 5, igual que en el formulario de la Semana 6)
+  campoCliente.addEventListener("input", () => validarTexto(campoCliente, 3));
+  campoCliente.addEventListener("blur",  () => validarTexto(campoCliente, 3));
+  selectProducto.addEventListener("change", () => validarSeleccion(selectProducto, "Selecciona un producto."));
+  selectProducto.addEventListener("blur",   () => validarSeleccion(selectProducto, "Selecciona un producto."));
+  campoCantidad.addEventListener("input", () => validarNumero(campoCantidad, 1, 99));
+  campoCantidad.addEventListener("blur",  () => validarNumero(campoCantidad, 1, 99));
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault(); // Evita que el formulario recargue la página
+
+    const clienteValido  = validarTexto(campoCliente, 3);
+    const productoValido = validarSeleccion(selectProducto, "Selecciona un producto.");
+    const cantidadValida = validarNumero(campoCantidad, 1, 99);
+
+    if (!(clienteValido && productoValido && cantidadValida)) {
+      mostrarMensaje("pedido-mensaje", "⚠️ Por favor completa correctamente todos los campos.", "danger");
+      return;
+    }
+
+    const opcionSeleccionada = selectProducto.options[selectProducto.selectedIndex];
+    const nuevoPedido = {
+      id: contadorIdPedido++,
+      cliente: campoCliente.value.trim(),
+      producto: opcionSeleccionada.value,
+      cantidad: parseInt(campoCantidad.value),
+      total: parseFloat(opcionSeleccionada.dataset.precio) * parseInt(campoCantidad.value),
+      estado: "Pendiente",
+    };
+
+    // Se agrega el nuevo registro al arreglo de datos dinámicos
+    pedidosRegistrados.push(nuevoPedido);
+    renderizarTablaPedidos();
+
+    mostrarMensaje("pedido-mensaje", `✅ Pedido de <strong>${nuevoPedido.cliente}</strong> registrado correctamente.`, "success");
+
+    form.reset();
+    campoCantidad.value = 1;
+    [campoCliente, selectProducto, campoCantidad].forEach(limpiarValidacion);
+  });
+
+  renderizarTablaPedidos();
+}
+
+function renderizarTablaPedidos() {
+  const tbody       = document.getElementById("tabla-pedidos");
+  const avisoVacio   = document.getElementById("pedidos-vacio");
+  const contadorEl   = document.getElementById("contador-pedidos");
+  if (!tbody) return;
+
+  // CONDICIÓN según el estado de los datos: si el arreglo está vacío,
+  // se muestra el mensaje informativo y se oculta la tabla.
+  if (pedidosRegistrados.length === 0) {
+    tbody.innerHTML = "";
+    if (avisoVacio) avisoVacio.classList.remove("d-none");
+    if (contadorEl) contadorEl.textContent = "0";
+    return;
+  }
+  if (avisoVacio) avisoVacio.classList.add("d-none");
+
+  // ESTRUCTURA REPETITIVA: se recorre el arreglo de objetos y se
+  // genera una fila <tr> por cada registro (equivalente a un
+  // {% for pedido in pedidos %} de una plantilla Jinja2).
+  tbody.innerHTML = "";
+  pedidosRegistrados.forEach((pedido, index) => {
+    const claseBadge = pedido.estado === "Confirmado" ? "badge-estado-confirmado" : "badge-estado-pendiente";
+
+    const fila = document.createElement("tr");
+    fila.classList.add("fila-pedido");
+    fila.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${pedido.cliente}</td>
+      <td>${pedido.producto}</td>
+      <td>${pedido.cantidad}</td>
+      <td>$${pedido.total.toFixed(2)}</td>
+      <td><span class="badge ${claseBadge}">${pedido.estado}</span></td>
+      <td><button class="btn btn-outline-danger btn-sm btn-eliminar-pedido" title="Eliminar registro">🗑️</button></td>
+    `;
+
+    fila.querySelector(".btn-eliminar-pedido").addEventListener("click", () => {
+      pedidosRegistrados.splice(index, 1);
+      renderizarTablaPedidos();
+    });
+
+    tbody.appendChild(fila);
+  });
+
+  if (contadorEl) contadorEl.textContent = pedidosRegistrados.length;
 }
 
 // ============================================================
@@ -511,3 +654,4 @@ function mostrarToast(htmlTexto) {
     setTimeout(() => toast.remove(), 400);
   }, 3000);
 }
+ 

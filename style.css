@@ -171,6 +171,26 @@ article h2 {
 }
 
 /* =====================
+   PANEL DE PEDIDOS (contenido dinámico - Semana 7)
+===================== */
+#panel-pedidos .table thead th {
+  font-weight: 700;
+}
+
+#panel-pedidos tr.fila-pedido {
+  animation: fadeIn 0.35s ease;
+}
+
+#panel-pedidos .badge-estado-pendiente {
+  background-color: #ffc107;
+  color: #333;
+}
+
+#panel-pedidos .badge-estado-confirmado {
+  background-color: #198754;
+}
+
+/* =====================
    FOOTER
 ===================== */
 footer {

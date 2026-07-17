@@ -45,12 +45,33 @@
 </head>
 <body>
 
-  <!-- HEADER -->
+  <!-- ============================================================
+       INICIO DE PLANTILLA BASE: "base.html"
+       ------------------------------------------------------------
+       Todo el bloque comprendido entre este comentario y el
+       comentario "FIN DE PLANTILLA BASE" representa el ESQUELETO
+       común de todas las páginas del sitio (header + nav + footer).
+       En una futura migración a Flask, este esqueleto se convertiría
+       en templates/base.html, con un bloque {% block content %}
+       en el lugar donde hoy está <main>, y las páginas hijas
+       (ej. index.html) harían {% extends "base.html" %}.
+  ============================================================ -->
+
+  <!-- ==================== PLANTILLA: header.html ====================
+       Encabezado reutilizable en todas las vistas del sitio.
+       Candidato a incluirse en base.html mediante
+       {% include "header.html" %} o directamente dentro del bloque
+       <header> de base.html. -->
   <header>
     <h1>Farmacia Central</h1>
   </header>
+  <!-- ==================== FIN PLANTILLA: header.html ================= -->
 
-  <!-- NAVBAR BOOTSTRAP RESPONSIVO -->
+  <!-- ==================== PLANTILLA: nav.html (menú) ==================
+       Barra de navegación reutilizable. Al migrar a Flask, los
+       href="#seccion" podrían reemplazarse por url_for('vista'),
+       y el ítem activo se marcaría dinámicamente con una condición
+       {% if request.path == ... %} dentro de la plantilla. -->
   <nav class="navbar navbar-expand-md navbar-dark">
     <div class="container">
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -63,13 +84,27 @@
           <li class="nav-item"><a class="nav-link" href="#quienes-somos">Quiénes Somos</a></li>
           <li class="nav-item"><a class="nav-link" href="#servicios">Servicios</a></li>
           <li class="nav-item"><a class="nav-link" href="#tienda-online">Tienda Online</a></li>
+          <li class="nav-item"><a class="nav-link" href="#panel-pedidos">Panel de Pedidos</a></li>
           <li class="nav-item"><a class="nav-link" href="#contacto">Contacto</a></li>
         </ul>
       </div>
     </div>
   </nav>
+  <!-- ==================== FIN PLANTILLA: nav.html ===================== -->
 
-  <!-- MAIN -->
+  <!-- ==================== PLANTILLA: content.html (BLOQUE DINÁMICO) ====
+       Este <main> representa el contenido que en Flask/Jinja2
+       correspondería al {% block content %}...{% endblock %} de cada
+       página hija que extiende base.html. Es decir:
+
+         {% extends "base.html" %}
+         {% block content %}
+             ... aquí iría todo el contenido de <main> ...
+         {% endblock %}
+
+       Aquí es donde se inyecta el contenido dinámico generado con
+       JavaScript (equivalente a los datos que en Flask vendrían
+       desde el backend/base de datos). -->
   <main class="container my-4">
 
     <!-- SECCIÓN INICIO -->
@@ -255,6 +290,89 @@
       </div>
     </section>
 
+    <!-- ============================================================
+         SECCIÓN PANEL DE PEDIDOS REGISTRADOS - CONTENIDO DINÁMICO
+         Subtema 2.1.2: Uso de "plantillas" para renderizar contenido
+         dinámico desde un arreglo de objetos JavaScript (simula los
+         datos que en Flask vendrían desde una base de datos y se
+         renderizarían con Jinja2 mediante {% for pedido in pedidos %}).
+    ============================================================ -->
+    <section id="panel-pedidos" class="p-3">
+      <h2>📋 Panel de Pedidos Registrados</h2>
+      <p class="text-muted">
+        Cada pedido confirmado en el carrito se registra aquí automáticamente.
+        También puedes registrar un pedido manualmente desde el formulario.
+        Esta tabla se genera recorriendo un arreglo de objetos con JavaScript
+        (equivalente a un bucle <code>{% for %}</code> en una plantilla Jinja2).
+      </p>
+
+      <div class="row align-items-center mb-3">
+        <div class="col">
+          <small class="text-muted">Total de pedidos registrados</small>
+        </div>
+        <div class="col-auto text-center">
+          <span id="contador-pedidos" class="display-6 fw-bold text-success">0</span>
+        </div>
+      </div>
+
+      <!-- Formulario para registrar un nuevo pedido manualmente -->
+      <form id="form-pedido" novalidate class="mb-4">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label for="pedido-cliente" class="form-label fw-semibold">Nombre del cliente <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="pedido-cliente" placeholder="Nombre completo">
+            <div class="valid-feedback">¡Nombre válido!</div>
+            <div class="invalid-feedback">Ingresa un nombre de al menos 3 caracteres.</div>
+          </div>
+          <div class="col-12 col-md-4">
+            <label for="pedido-producto" class="form-label fw-semibold">Producto <span class="text-danger">*</span></label>
+            <select class="form-control" id="pedido-producto">
+              <option value="">-- Selecciona un producto --</option>
+            </select>
+            <div class="valid-feedback">Producto seleccionado.</div>
+            <div class="invalid-feedback">Selecciona un producto.</div>
+          </div>
+          <div class="col-6 col-md-2">
+            <label for="pedido-cantidad" class="form-label fw-semibold">Cantidad <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="pedido-cantidad" value="1" min="1" max="99">
+            <div class="valid-feedback">Cantidad válida.</div>
+            <div class="invalid-feedback">Ingresa una cantidad entre 1 y 99.</div>
+          </div>
+          <div class="col-6 col-md-2 d-grid">
+            <label class="form-label fw-semibold text-white d-none d-md-block">‎</label>
+            <button type="submit" class="btn btn-primary">📝 Registrar</button>
+          </div>
+        </div>
+        <div id="pedido-mensaje" class="mt-2"></div>
+      </form>
+
+      <!-- Tabla generada dinámicamente (bucle sobre arreglo de objetos "pedidosRegistrados") -->
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <!-- tbody: aquí se insertan las filas <tr> generadas por JS, una por cada
+               objeto del arreglo pedidosRegistrados (equivalente a un {% for %}) -->
+          <tbody id="tabla-pedidos"></tbody>
+        </table>
+      </div>
+
+      <!-- Mensaje condicional: se muestra solo si NO hay pedidos registrados
+           (equivalente a un {% if pedidos|length == 0 %}...{% endif %}) -->
+      <div id="pedidos-vacio" class="alert alert-secondary text-center">
+        📭 Aún no hay pedidos registrados. Agrega uno desde el formulario o confirma tu carrito de compras.
+      </div>
+    </section>
+
     <!-- ARTÍCULO DESTACADO -->
     <article class="my-4">
       <h2>Artículo Destacado</h2>
@@ -347,11 +465,20 @@
     </section>
 
   </main>
+  <!-- ==================== FIN PLANTILLA: content.html (bloque dinámico) ===================== -->
 
-  <!-- FOOTER -->
+  <!-- ==================== PLANTILLA: footer.html ====================
+       Pie de página reutilizable en todas las vistas del sitio.
+       Candidato a incluirse en base.html mediante
+       {% include "footer.html" %}. -->
   <footer>
     <p class="m-0">Farmacia Central &copy; 2024 | Estudiante: Edgar Francisco Jinez Montesdeoca | Asignatura: Desarrollo de Aplicaciones Web | Año: 2026</p>
   </footer>
+  <!-- ==================== FIN PLANTILLA: footer.html ================== -->
+
+  <!-- ============================================================
+       FIN DE PLANTILLA BASE: "base.html"
+  ============================================================ -->
 
   <!-- =====================================================
        BOTÓN FLOTANTE DEL CARRITO
