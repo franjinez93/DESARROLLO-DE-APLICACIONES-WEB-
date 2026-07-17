@@ -2,8 +2,6 @@
 //  FARMACIA CENTRAL - script.js
 //  Fundamentos de JavaScript: manipulación del DOM y eventos
 //  Estudiante: Edgar Francisco Jinez Montesdeoca
-//  Asignatura: Desarrollo de Aplicaciones Web | Año: 2026
-//  Subtema 2.1.1 - UEA
 // ============================================================
 
 // =====================
@@ -79,10 +77,20 @@ document.addEventListener("DOMContentLoaded", () => {
 // ============================================================
 function inicializarCatalogo() {
   const contenedor = document.getElementById("catalogo-dinamico");
+  const spinner    = document.getElementById("spinner-catalogo");
   if (!contenedor) return;
-  productosDestacados.forEach((producto) => {
-    contenedor.appendChild(crearTarjetaProducto(producto));
-  });
+
+  // Simulación de una carga asíncrona (p. ej. una futura llamada fetch()
+  // a un backend Flask). Mientras "carga", se muestra un spinner de
+  // Bootstrap; al terminar, se revela el catálogo generado con JS.
+  setTimeout(() => {
+    productosDestacados.forEach((producto) => {
+      contenedor.appendChild(crearTarjetaProducto(producto));
+    });
+
+    if (spinner) spinner.classList.add("d-none");
+    contenedor.classList.remove("d-none");
+  }, 900);
 }
 
 function crearTarjetaProducto(producto) {
@@ -272,25 +280,40 @@ function inicializarCarrito() {
         mostrarMensaje("carrito-mensaje", "⚠️ Tu carrito está vacío.", "warning");
         return;
       }
-      // Cada producto del carrito se convierte en un registro dentro
-      // del arreglo dinámico "pedidosRegistrados" (contenido dinámico
-      // que se renderiza en la tabla del Panel de Pedidos).
-      carrito.forEach((item) => {
-        pedidosRegistrados.push({
-          id: contadorIdPedido++,
-          cliente: "Cliente Web",
-          producto: item.nombre,
-          cantidad: item.cantidad,
-          total: item.precio * item.cantidad,
-          estado: "Confirmado",
-        });
-      });
-      renderizarTablaPedidos();
 
-      carrito = [];
-      renderizarCarrito();
-      actualizarBadgeCarrito();
-      mostrarMensaje("carrito-mensaje", "✅ ¡Pedido confirmado! Nos contactaremos contigo pronto.", "success");
+      // Proceso simulado (spinner de Bootstrap) mientras se "procesa"
+      // el pedido, tal como ocurriría con una petición real al backend.
+      const spinner = document.getElementById("spinner-confirmar");
+      const texto   = document.getElementById("texto-confirmar");
+      btnConfirmar.disabled = true;
+      if (spinner) spinner.classList.remove("d-none");
+      if (texto) texto.textContent = "Procesando...";
+
+      setTimeout(() => {
+        // Cada producto del carrito se convierte en un registro dentro
+        // del arreglo dinámico "pedidosRegistrados" (contenido dinámico
+        // que se renderiza en la tabla del Panel de Pedidos).
+        carrito.forEach((item) => {
+          pedidosRegistrados.push({
+            id: contadorIdPedido++,
+            cliente: "Cliente Web",
+            producto: item.nombre,
+            cantidad: item.cantidad,
+            total: item.precio * item.cantidad,
+            estado: "Confirmado",
+          });
+        });
+        renderizarTablaPedidos();
+
+        carrito = [];
+        renderizarCarrito();
+        actualizarBadgeCarrito();
+        mostrarMensaje("carrito-mensaje", "✅ ¡Pedido confirmado! Nos contactaremos contigo pronto.", "success");
+
+        btnConfirmar.disabled = false;
+        if (spinner) spinner.classList.add("d-none");
+        if (texto) texto.textContent = "✅ Confirmar Pedido";
+      }, 1000);
     });
   }
 
@@ -654,4 +677,3 @@ function mostrarToast(htmlTexto) {
     setTimeout(() => toast.remove(), 400);
   }, 3000);
 }
- 
