@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Farmacia Central - Proveedores{% endblock %}
+
+{% block content %}
+    <div class="container my-5" style="padding-top: 100px;">
+      <section id="proveedores" class="mb-5 pt-4">
+        <h2 class="section-title">Proveedores</h2>
+        <p class="text-muted">Registra o consulta los proveedores que abastecen a Farmacia Central.</p>
+
+        <div class="form-dark-panel p-4 rounded-4">
+          <h5 class="text-brand-yellow mb-3">Registro de Proveedor</h5>
+          <form id="form-proveedor" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label text-light">Nombre / Empresa <span class="text-danger">*</span></label>
+                <input type="text" class="form-control bg-dark text-white" id="proveedor-nombre" placeholder="Nombre del proveedor">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-light">Producto que provee <span class="text-danger">*</span></label>
+                <input type="text" class="form-control bg-dark text-white" id="proveedor-producto" placeholder="Ej: Medicamentos genéricos">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-light">Teléfono</label>
+                <input type="text" class="form-control bg-dark text-white" id="proveedor-telefono" placeholder="0999999999">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-light">Email</label>
+                <input type="email" class="form-control bg-dark text-white" id="proveedor-email" placeholder="correo@proveedor.com">
+              </div>
+              <div class="col-12">
+                <div id="proveedor-mensaje"></div>
+                <button type="submit" class="btn btn-brand-yellow w-100 fw-bold mt-2">Registrar Proveedor</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="alert bg-dark border-secondary text-center text-muted mt-4">
+          📭 Aún no hay proveedores registrados.
+        </div>
+      </section>
+    </div>
+{% endblock %}

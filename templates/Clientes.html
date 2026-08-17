@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Farmacia Central - Clientes{% endblock %}
+
+{% block content %}
+    <div class="container my-5" style="padding-top: 100px;">
+      <!-- SECCIÓN CLIENTES / CONTACTO -->
+      <section id="contacto" class="mb-5 pt-4">
+        <h2 class="section-title">Clientes</h2>
+        <p class="text-muted">Escríbenos tus datos y tu consulta; nuestro equipo te contactará a la brevedad.</p>
+        <div class="row g-4">
+          <div class="col-12 col-md-5">
+            <div class="form-dark-panel p-4 rounded-4 h-100">
+              <p class="text-muted mb-3"><i class="fa-solid fa-envelope text-brand-yellow me-2"></i> contacto@farmaciacentral.com</p>
+              <p class="text-muted mb-3"><i class="fa-solid fa-phone text-brand-yellow me-2"></i> +593 98 373 7588</p>
+              <p class="text-muted mb-4"><i class="fa-solid fa-location-dot text-brand-yellow me-2"></i> Av. 10 de Agosto 456, Quito, Ecuador</p>
+              <div class="d-flex gap-2">
+                <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-facebook"></i></a>
+                <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-twitter"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-7">
+            <div class="form-dark-panel p-4 rounded-4">
+              <form id="form-contacto" novalidate>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label text-light">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-dark text-white" id="nombre" placeholder="Tu nombre">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-light">Email <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control bg-dark text-white" id="email" placeholder="correo@ejemplo.com">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-light">Consulta <span class="text-danger">*</span></label>
+                    <select class="form-select bg-dark text-white" id="tipo-consulta">
+                      <option value="">-- Selecciona --</option>
+                      <option value="General">Consulta General</option>
+                      <option value="Soporte">Soporte Técnico</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-light">Asunto <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-dark text-white" id="asunto" placeholder="Asunto">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label text-light">Mensaje <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-dark text-white" id="mensaje" rows="4"></textarea>
+                  </div>
+                  <div class="col-12">
+                    <div id="contacto-mensaje"></div>
+                    <button type="submit" class="btn btn-brand-yellow w-100 fw-bold mt-2">Enviar Mensaje</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+{% endblock %}

@@ -9,33 +9,122 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Hoja de estilos externa -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  
+
+  <!-- Hoja de estilos externa servida por Flask -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-  <!-- INCLUIR NAVBAR -->
-  {% include 'includes/navbar.html' %}
+  <!-- NAVBAR ESTILO IMAGEN REFERENCIA -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-transparent fixed-top transition-navbar" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+        <i class="fa-solid fa-notes-medical text-brand-yellow"></i>
+        Farmacia <span class="text-brand-yellow">Central</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('index') }}#inicio">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('index') }}#quienes-somos">Nosotros</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('index') }}#servicios">Servicios</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('productos') }}">Productos</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('clientes') }}">Clientes</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('proveedores') }}">Proveedores</a></li>
+          <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('facturacion') }}">Facturación</a></li>
+          <!-- BOTÓN INICIAR SESIÓN (Abre Modal) -->
+          <li class="nav-item ms-lg-3">
+            <a class="nav-link text-brand-yellow fw-semibold cursor-pointer" id="btn-nav-login" data-bs-toggle="modal" data-bs-target="#modalLogin">
+              <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
   <main>
-    {% block content %}
-    <!-- El contenido específico de cada página va aquí -->
-    {% endblock %}
+    {% block content %}{% endblock %}
   </main>
 
-  <!-- INCLUIR FOOTER -->
-  {% include 'includes/footer.html' %}
+  <footer>
+    <div class="container text-center text-muted py-4">
+      <p class="m-0 small">Farmacia Central &copy; 2026 | Estudiante: Edgar Francisco Jinez Montesdeoca | Asignatura: Desarrollo de Aplicaciones Web</p>
+    </div>
+  </footer>
 
-  <!-- INCLUIR MODALES -->
-  {% include 'includes/modals.html' %}
-  {% include 'includes/login_modal.html' %}
+  <!-- BOTONES FLOTANTES -->
+  <div class="floating-buttons">
+    <button id="btn-flotante-carrito" class="btn btn-brand-yellow position-relative shadow mb-3 d-block" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span id="badge-carrito" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display:none;">0</span>
+    </button>
+    <a href="https://wa.me/593983737588" target="_blank" class="btn btn-whatsapp shadow d-block">
+      <i class="fa-brands fa-whatsapp fs-4"></i>
+    </a>
+  </div>
 
-  <!-- Bootstrap JS y Script Propio -->
+  <!-- MODAL CARRITO -->
+  <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-brand-yellow fw-bold"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="lista-carrito"><p class="text-center text-muted py-3">Tu carrito está vacío.</p></div>
+          <div id="carrito-mensaje"></div>
+        </div>
+        <div class="modal-footer border-secondary d-flex justify-content-between">
+          <div class="fw-bold fs-5">Total: <span id="total-carrito" class="text-brand-yellow">$0.00</span></div>
+          <div class="d-flex gap-2">
+            <button id="btn-vaciar-carrito" class="btn btn-outline-danger btn-sm">Vaciar</button>
+            <button id="btn-confirmar-pedido" class="btn btn-brand-yellow btn-sm">
+              <span id="spinner-confirmar" class="spinner-border spinner-border-sm d-none"></span>
+              <span id="texto-confirmar">Confirmar Pedido</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INICIO DE SESIÓN -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-bottom-0">
+          <h5 class="modal-title text-brand-yellow fw-bold"><i class="fa-solid fa-user-lock"></i> Inicio de Sesión</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pb-0">
+          <form id="form-login" novalidate>
+            <div class="mb-3">
+              <label class="form-label text-light">Usuario o Correo</label>
+              <input type="text" class="form-control bg-dark text-white" id="login-user" placeholder="ej: admin" required>
+            </div>
+            <div class="mb-4">
+              <label class="form-label text-light">Contraseña</label>
+              <input type="password" class="form-control bg-dark text-white" id="login-pass" placeholder="***" required>
+            </div>
+            <div id="login-mensaje"></div>
+            <button type="submit" class="btn btn-brand-yellow w-100 fw-bold mb-3">Acceder al Sistema</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS y Script Propio servidos por Flask -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>
