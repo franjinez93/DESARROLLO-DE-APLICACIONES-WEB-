@@ -1,290 +1,107 @@
 /* ============================================================
-   FARMACIA CENTRAL - style.css
-   Estilos CSS3 personalizados
+   FARMACIA CENTRAL - style.css (TEMA OSCURO MODERNO)
    Estudiante: Edgar Francisco Jinez Montesdeoca
-   ============================================================ */
+============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
 
-/* =====================
-   GOOGLE FONTS
-===================== */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+:root {
+    --color-bg-dark: #0f1319;
+    --color-bg-panel: #1a202c;
+    --color-brand-yellow: #facc15; 
+    --color-brand-yellow-hover: #eab308;
+    --color-text-light: #f3f4f6;
+    --color-text-muted: #9ca3af;
+}
 
-/* =====================
-   ESTILOS GENERALES
-===================== */
 body {
-  font-family: 'Roboto', sans-serif;
-  margin: 10px;
-  background-color: #f8f9fa;
-  color: #333;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-light);
+    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
-/* =====================
-   HEADER
-===================== */
-header {
-  background: linear-gradient(to right, #5192f4, #b7ecf7);
-  color: white;
-  padding: 20px 0;
-  text-align: center;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
+.cursor-pointer { cursor: pointer; }
+
+/* --- Títulos --- */
+.section-title {
+    color: var(--color-text-light);
+    font-weight: 800;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+.text-brand-yellow { color: var(--color-brand-yellow) !important; }
+
+/* --- Botones --- */
+.btn-brand-yellow {
+    background-color: var(--color-brand-yellow);
+    color: #000;
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-brand-yellow:hover {
+    background-color: var(--color-brand-yellow-hover);
+    color: #000;
+    transform: translateY(-2px);
+}
+.btn-outline-light { border: 2px solid white; transition: all 0.3s ease; }
+.btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    transform: translateY(-2px);
 }
 
-header h1 {
-  font-size: 2.5em;
-  font-weight: 700;
-  letter-spacing: 2px;
-  margin: 0;
+/* --- Navbar Transición --- */
+.transition-navbar { transition: background-color 0.4s ease, padding 0.4s ease; padding: 1.5rem 0; }
+.navbar.scrolled {
+    background-color: rgba(15, 19, 25, 0.95) !important;
+    padding: 0.8rem 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+}
+.nav-link { transition: color 0.3s ease; }
+.nav-link:hover { color: var(--color-brand-yellow) !important; }
+
+/* --- Sección Hero --- */
+.hero-section {
+    min-height: 100vh;
+    background: linear-gradient(to right, rgba(15,19,25,0.95) 0%, rgba(15,19,25,0.7) 50%, rgba(15,19,25,0.4) 100%), 
+                url('https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
+    background-size: cover;
+    background-attachment: fixed;
+    position: relative;
+    padding-top: 80px; 
+}
+.hero-title { font-size: 4.5rem; line-height: 1.1; letter-spacing: -2px; }
+@media (max-width: 768px) { .hero-title { font-size: 3rem; } }
+
+/* --- Tarjetas y Formularios --- */
+.card { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.05); }
+.card-hover { transition: transform 0.3s, border-color 0.3s; }
+.card-hover:hover { transform: translateY(-5px); border-color: var(--color-brand-yellow); }
+.form-dark-panel { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.05); }
+
+.form-control:focus, .form-select:focus {
+    background-color: #2d3748;
+    border-color: var(--color-brand-yellow);
+    color: white;
+    box-shadow: 0 0 0 0.25rem rgba(250, 204, 21, 0.25);
 }
 
-/* =====================
-   NAVBAR
-===================== */
-nav.navbar {
-  background-color: #86d076;
-}
+/* --- Botones Flotantes --- */
+.floating-buttons { position: fixed; bottom: 30px; right: 30px; z-index: 1050; display: flex; flex-direction: column; gap: 15px; }
+.floating-buttons .btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.btn-whatsapp { background-color: #25D366; color: white; border: none; transition: transform 0.3s; }
+.btn-whatsapp:hover { transform: scale(1.1); color: white; }
 
-nav.navbar .nav-link {
-  color: white !important;
-  font-weight: 500;
-  transition: color 0.3s;
-}
+/* --- Tablas Personalizadas y Badges --- */
+.custom-table { border-collapse: separate; border-spacing: 0 8px; }
+.custom-table th { background-color: transparent; color: var(--color-text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); }
+.custom-table td { background-color: var(--color-bg-panel); border-color: transparent; }
 
-nav.navbar .nav-link:hover {
-  color: #65c91e !important;
-}
+.badge-estado-pendiente { background-color: #eab308; color: #000; }
+.badge-estado-confirmado { background-color: #22c55e; color: #fff; }
 
-/* =====================
-   SECCIONES
-===================== */
-section {
-  padding: 40px 0;
-}
-
-section h2 {
-  color: #309c15;
-  border-left: 5px solid #0df01c;
-  padding-left: 10px;
-  margin-bottom: 20px;
-}
-
-/* =====================
-   IMAGEN RESPONSIVA
-===================== */
-.img-fluid {
-  border-radius: 10px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-/* =====================
-   CARDS DE SERVICIOS
-===================== */
-.card {
-  border-radius: 12px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: none;
-}
-
-.card:hover {
-  transform: scale(1.05);
-  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.4);
-}
-
-.card-title {
-  color: #0d6efd;
-  font-weight: 700;
-}
-
-/* =====================
-   BOTONES
-===================== */
-.btn-primary {
-  background: linear-gradient(to right, #0d6efd, #0dcaf0);
-  border: none;
-  border-radius: 12px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.3);
-  color: white;
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.btn-primary:hover {
-  transform: scale(1.1);
-  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(to right, #0dcaf0, #0d6efd);
-}
-
-/* =====================
-   ASIDE
-===================== */
-aside {
-  background-color: #e9f5ff;
-  border-left: 5px solid #0d6efd;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-aside h3 {
-  color: #0d6efd;
-}
-
-/* =====================
-   IFRAME (VIDEO)
-===================== */
-iframe {
-  border-radius: 10px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* =====================
-   ARTÍCULO DESTACADO
-===================== */
-article {
-  background-color: #fff3cd;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
-article h2 {
-  color: #856404;
-  border-left: 5px solid #ffc107;
-  padding-left: 10px;
-}
-
-/* =====================
-   FORMULARIO DE CONTACTO
-===================== */
-#contacto .form-control,
-#contacto .form-select {
-  border-radius: 8px;
-  border: 1px solid #0d6efd;
-}
-
-#contacto .form-control:focus,
-#contacto .form-select:focus {
-  box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
-}
-
-/* =====================
-   PANEL DE PEDIDOS (contenido dinámico - Semana 7)
-===================== */
-#panel-pedidos .table thead th {
-  font-weight: 700;
-}
-
-#panel-pedidos tr.fila-pedido {
-  animation: fadeIn 0.35s ease;
-}
-
-#panel-pedidos .badge-estado-pendiente {
-  background-color: #ffc107;
-  color: #333;
-}
-
-#panel-pedidos .badge-estado-confirmado {
-  background-color: #198754;
-}
-
-/* =====================
-   FOOTER
-===================== */
-footer {
-  background: linear-gradient(to right, #0d6efd, #0dcaf0);
-  color: white;
-  text-align: center;
-  padding: 15px 0;
-  margin-top: 40px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* ============================================================
-   SELECTORES AVANZADOS CSS3
-   (Del PDF - Subtema 1.2.1)
-   ============================================================ */
-
-/* Selector de atributo: Links que comienzan con "https" */
-a[href^="https"] {
-  color: #0d6efd;
-}
-
-/* Selector estructural: Segundo elemento de la lista */
-.servicios-lista li:nth-child(2) {
-  color: #0d6efd;
-  font-weight: bold;
-}
-
-/* Combinador: Primer párrafo después de un h2 */
-h2 + p {
-  color: #444;
-}
-
-/* Pseudo-clase: Botón al pasar el cursor - ya definido en .btn-primary:hover */
-
-/* Pseudo-elemento: Primera letra destacada en artículo */
-article p::first-letter {
-  font-size: 2em;
-  color: #0d6efd;
-  font-weight: bold;
-}
-
-/* ============================================================
-   MEDIA QUERIES CSS3
-   (Del PDF - Soporte para diseño responsivo)
-   ============================================================ */
-
-/* Estilo general (para todos los tamaños) */
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 10px;
-  background-color: #f8f9fa;
-}
-
-/* Pantallas pequeñas (teléfonos) */
-@media (max-width: 600px) {
-  body {
-    background-color: #f0f8ff;
-    font-size: 14px;
-  }
-
-  header h1 {
-    font-size: 1.6em;
-  }
-
-  section h2 {
-    font-size: 1.3em;
-  }
-
-  aside {
-    margin-top: 20px;
-  }
-}
-
-/* Pantallas medianas (tabletas) */
-@media (min-width: 601px) and (max-width: 1024px) {
-  body {
-    background-color: #f8f9fa;
-    font-size: 16px;
-  }
-
-  header h1 {
-    font-size: 2em;
-  }
-}
-
-/* Pantallas grandes (escritorios) */
-@media (min-width: 1025px) {
-  body {
-    background-color: #f8f9fa;
-    font-size: 18px;
-  }
-
-  header h1 {
-    font-size: 2.5em;
-  }
-}
+/* Animaciones de DOM */
+.fila-pedido { animation: fadeIn 0.35s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
