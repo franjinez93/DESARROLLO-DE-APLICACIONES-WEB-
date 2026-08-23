@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Farmacia Central - Clientes{% endblock %}
+{% block title %}{{ nombre_farmacia }} - Clientes{% endblock %}
 
 {% block content %}
     <div class="container my-5" style="padding-top: 100px;">
       <!-- SECCIÓN CLIENTES / CONTACTO -->
       <section id="contacto" class="mb-5 pt-4">
         <h2 class="section-title">Clientes</h2>
-        <p class="text-muted">Escríbenos tus datos y tu consulta; nuestro equipo te contactará a la brevedad.</p>
+        <p class="text-muted">Escríbenos tus datos y tu consulta; nuestro equipo de {{ nombre_farmacia }} te contactará a la brevedad.</p>
         <div class="row g-4">
           <div class="col-12 col-md-5">
             <div class="form-dark-panel p-4 rounded-4 h-100">

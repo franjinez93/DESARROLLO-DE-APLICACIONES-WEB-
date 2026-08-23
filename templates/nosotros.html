@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Nosotros{% endblock %}
+
+{% block content %}
+    <div class="container my-5" style="padding-top: 100px;">
+      <section id="nosotros" class="mb-5 pt-4">
+        <h2 class="section-title">Quiénes Somos</h2>
+        <p class="text-muted lead">
+          {{ nombre_farmacia|upper }} es un establecimiento farmacéutico con más de
+          {{ info.anios_experiencia }} años de experiencia al servicio de la comunidad.
+        </p>
+
+        <div class="row align-items-center g-4 mb-5">
+          <div class="col-12 col-md-7">
+            <p class="text-muted">
+              Ofrecemos una amplia variedad de medicamentos genéricos y de marca, productos naturales,
+              suplementos vitamínicos, artículos de cuidado personal y equipos médicos. Nos caracterizamos
+              por mantener precios accesibles y un servicio humano y cercano con cada paciente.
+            </p>
+            {% if info.envio_disponible %}
+            <p class="text-success"><i class="fa-solid fa-circle-check me-2"></i>Servicio a domicilio disponible en toda la ciudad.</p>
+            {% else %}
+            <p class="text-danger"><i class="fa-solid fa-circle-xmark me-2"></i>Servicio a domicilio no disponible por el momento.</p>
+            {% endif %}
+          </div>
+          <div class="col-12 col-md-5 text-center">
+            <img src="https://img.magnific.com/foto-gratis/farmaceutica-joven-hispana-sonriendo-segura-pie-gesto-brazos-cruzados-farmacia_839833-7087.jpg?semt=ais_hybrid&w=740&q=80" alt="{{ nombre_farmacia }}" class="img-fluid rounded-4 shadow-lg border border-secondary">
+          </div>
+        </div>
+
+        <!-- MISIÓN Y VISIÓN -->
+        <div class="row g-4 mb-5">
+          <div class="col-12 col-md-6">
+            <div class="form-dark-panel p-4 rounded-4 h-100">
+              <h4 class="text-brand-yellow mb-3">🎯 Misión</h4>
+              <p class="text-muted m-0">{{ mision }}</p>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="form-dark-panel p-4 rounded-4 h-100">
+              <h4 class="text-brand-yellow mb-3">🔭 Visión</h4>
+              <p class="text-muted m-0">{{ vision }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- VALORES (generado dinámicamente con for) -->
+        <h3 class="text-brand-yellow mb-3">Nuestros Valores</h3>
+        <div class="row g-4 mb-5">
+          {% for valor in valores %}
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <div class="display-5">{{ valor.icono }}</div>
+                <h6 class="card-title text-brand-yellow mt-2">{{ valor.titulo }}</h6>
+                <p class="card-text text-muted small">{{ valor.descripcion }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- EQUIPO (generado dinámicamente con for) -->
+        <h3 class="text-brand-yellow mb-3">Nuestro Equipo</h3>
+        <div class="row g-4">
+          {% for miembro in equipo %}
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="form-dark-panel p-4 rounded-4 h-100 text-center">
+              <div class="display-4 mb-2">{{ miembro.icono }}</div>
+              <h5 class="text-white mb-0">{{ miembro.nombre }}</h5>
+              <div class="text-brand-yellow small fw-semibold mb-2">{{ miembro.cargo }}</div>
+              <p class="text-muted small m-0">{{ miembro.descripcion }}</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <div class="alert bg-dark border-secondary text-center text-muted">
+              Aún no se ha registrado el equipo.
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+{% endblock %}

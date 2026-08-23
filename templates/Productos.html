@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Farmacia Central - Productos{% endblock %}
+{% block title %}{{ nombre_farmacia }} - Productos{% endblock %}
 
 {% block content %}
     <div class="container my-5" style="padding-top: 100px;">
@@ -11,13 +11,36 @@
 
         <h5 class="text-brand-yellow mt-4 mb-3">⭐ Productos Destacados</h5>
 
-        <div id="spinner-catalogo" class="text-center py-4">
-          <div class="spinner-border text-brand-yellow" role="status"></div>
-          <p class="text-muted small mt-2">Cargando productos destacados...</p>
-        </div>
+        <!-- Catálogo generado dinámicamente con Jinja2 (for + if/else) -->
+        <div class="row g-4" id="catalogo-dinamico">
+          {% for producto in productos %}
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center"
+                 data-nombre="{{ producto.nombre }}"
+                 data-categoria="{{ producto.categoria }}"
+                 data-precio="{{ producto.precio }}">
+              <div class="card-body">
+                <span class="display-5">{{ producto.icono }}</span>
+                <h5 class="card-title text-brand-yellow mt-2">{{ producto.nombre }}</h5>
+                <p class="badge bg-secondary mb-2">{{ producto.categoria|upper }}</p>
+                <p class="card-text text-muted small">{{ producto.descripcion }}</p>
+                <p class="fw-bold text-brand-yellow fs-5">${{ "%.2f"|format(producto.precio) }}</p>
 
-        <div class="row g-4 d-none" id="catalogo-dinamico">
-          <!-- Dinámico JS -->
+                {% if producto.stock > 0 %}
+                  <span class="badge bg-success">✔ Disponible ({{ producto.stock }})</span>
+                {% else %}
+                  <span class="badge bg-danger">✘ Agotado</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <div class="alert bg-dark border-secondary text-center text-muted">
+              📭 No hay productos destacados disponibles por el momento.
+            </div>
+          </div>
+          {% endfor %}
         </div>
 
         <!-- FORMULARIO DE SELECCIÓN -->

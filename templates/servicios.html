@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Servicios{% endblock %}
+
+{% block content %}
+    <div class="container my-5" style="padding-top: 100px;">
+      <section id="servicios" class="mb-5 pt-4">
+        <h2 class="section-title">Servicios o Productos</h2>
+        <p class="text-muted">
+          Conoce a detalle todo lo que {{ nombre_farmacia }} tiene disponible para ti.
+          <span class="badge bg-brand-yellow text-dark ms-1">{{ servicios|length }} servicios</span>
+        </p>
+
+        <div class="row g-4">
+          {% for servicio in servicios %}
+          <div class="col-12 col-md-6">
+            <div class="form-dark-panel p-4 rounded-4 h-100">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h5 class="text-brand-yellow m-0">{{ servicio.icono }} {{ servicio.nombre }}</h5>
+                {% if servicio.disponible %}
+                  <span class="badge bg-success">Disponible</span>
+                {% else %}
+                  <span class="badge bg-danger">No disponible</span>
+                {% endif %}
+              </div>
+              <p class="text-muted mb-2">{{ servicio.resumen }}</p>
+              <p class="text-muted small fst-italic mb-0">{{ servicio.detalle }}</p>
+            </div>
+          </div>
+          {% else %}
+          <div class="col-12">
+            <div class="alert bg-dark border-secondary text-center text-muted">
+              📭 No hay servicios registrados por el momento.
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="form-dark-panel p-4 rounded-4 mt-5 text-center">
+          <h4 class="text-brand-yellow mb-3">¿Buscas algo en específico?</h4>
+          <p class="text-muted mb-3">Revisa nuestro catálogo de productos o contáctanos directamente.</p>
+          <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('productos') }}" class="btn btn-brand-yellow fw-bold">Ver productos</a>
+            <a href="{{ url_for('clientes') }}" class="btn btn-outline-light">Contactar</a>
+          </div>
+        </div>
+      </section>
+    </div>
+{% endblock %}

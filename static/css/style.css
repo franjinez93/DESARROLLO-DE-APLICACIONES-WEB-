@@ -1,21 +1,40 @@
 /* ============================================================
-   FARMACIA CENTRAL - style.css (TEMA OSCURO MODERNO)
+   FARMACIA CENTRAL - style.css (TEMA "APP MÓVIL" AZUL-VERDE)
    Estudiante: Edgar Francisco Jinez Montesdeoca
+   Paleta y fondos ajustados al diseño de la app móvil
+   (degradado azul → verde con iconografía médica sutil)
 ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
 
 :root {
-    --color-bg-dark: #0f1319;
-    --color-bg-panel: #1a202c;
-    --color-brand-yellow: #facc15; 
-    --color-brand-yellow-hover: #eab308;
-    --color-text-light: #f3f4f6;
-    --color-text-muted: #9ca3af;
+    /* --- Paleta base (antes oscuro neutro) ahora azul-verde tipo app --- */
+    --color-bg-dark: #08202b;        /* fondo general: azul petróleo oscuro */
+    --color-bg-panel: #0d3245;       /* paneles/tarjetas: azul más claro */
+    --color-brand-yellow: #2dd4bf;   /* color de marca: turquesa (antes amarillo) */
+    --color-brand-yellow-hover: #14b8a6; /* hover de marca: verde azulado */
+    --color-text-light: #eafbff;
+    --color-text-muted: #a9cdd6;
+
+    /* --- Colores extra del degradado de la app (azul → verde) --- */
+    --color-app-blue: #0ea5e9;
+    --color-app-teal: #14b8a6;
+    --color-app-green: #4ade80;
+    --gradient-app: linear-gradient(160deg, #0d8fd1 0%, #14b8a6 45%, #4ade80 100%);
+    --gradient-app-soft: linear-gradient(180deg, rgba(8,32,43,0.92) 0%, rgba(13,50,66,0.85) 100%);
 }
 
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--color-bg-dark);
+    background-image:
+        radial-gradient(circle at 15% 0%, rgba(14,165,233,0.20) 0%, transparent 45%),
+        radial-gradient(circle at 100% 15%, rgba(74,222,128,0.16) 0%, transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(20,184,166,0.16) 0%, transparent 45%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%2314b8a6' stroke-opacity='0.10' stroke-width='2'%3E%3Cpath d='M25 10v20M15 20h20'/%3E%3Ccircle cx='105' cy='30' r='11'/%3E%3Cpath d='M70 75c-11 0-11 16 0 16s11-16 0-16z'/%3E%3Cpath d='M110 100l-6 12h12z'/%3E%3Cpath d='M20 100c8-6 16-6 24 0'/%3E%3Ccircle cx='30' cy='115' r='3'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: cover, cover, cover, 260px 260px;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    background-position: center, center, center, center;
+    background-attachment: fixed, fixed, fixed, fixed;
     color: var(--color-text-light);
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -34,19 +53,19 @@ body {
 
 /* --- Botones --- */
 .btn-brand-yellow {
-    background-color: var(--color-brand-yellow);
-    color: #000;
+    background: linear-gradient(135deg, var(--color-app-blue), var(--color-brand-yellow));
+    color: #062b26;
     border: none;
     transition: all 0.3s ease;
 }
 .btn-brand-yellow:hover {
-    background-color: var(--color-brand-yellow-hover);
-    color: #000;
+    background: linear-gradient(135deg, var(--color-brand-yellow-hover), var(--color-app-green));
+    color: #052a26;
     transform: translateY(-2px);
 }
 .btn-outline-light { border: 2px solid white; transition: all 0.3s ease; }
 .btn-outline-light:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255,255,255,0.12);
     color: white;
     transform: translateY(-2px);
 }
@@ -54,38 +73,49 @@ body {
 /* --- Navbar Transición --- */
 .transition-navbar { transition: background-color 0.4s ease, padding 0.4s ease; padding: 1.5rem 0; }
 .navbar.scrolled {
-    background-color: rgba(15, 19, 25, 0.95) !important;
+    background: linear-gradient(120deg, rgba(8,32,43,0.95), rgba(13,50,66,0.95)) !important;
     padding: 0.8rem 0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     backdrop-filter: blur(10px);
 }
 .nav-link { transition: color 0.3s ease; }
 .nav-link:hover { color: var(--color-brand-yellow) !important; }
 
-/* --- Sección Hero --- */
+/* --- Sección Hero: degradado azul → verde con patrón de iconos médicos,
+       igual que el fondo de la app móvil --- */
 .hero-section {
     min-height: 100vh;
-    background: linear-gradient(to right, rgba(15,19,25,0.95) 0%, rgba(15,19,25,0.7) 50%, rgba(15,19,25,0.4) 100%), 
-                url('https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop') no-repeat center center;
-    background-size: cover;
-    background-attachment: fixed;
+    background:
+        linear-gradient(115deg, rgba(8,32,43,0.90) 0%, rgba(13,50,66,0.75) 45%, rgba(20,184,166,0.35) 100%),
+        url('../img/FARMACIA_CENTRAL.jfif');
+    background-blend-mode: normal, normal;
+    background-size: cover, cover;
+    background-repeat: no-repeat, no-repeat;
+    background-position: center, center;
+    background-attachment: fixed, fixed;
     position: relative;
-    padding-top: 80px; 
+    padding-top: 80px;
 }
 .hero-title { font-size: 4.5rem; line-height: 1.1; letter-spacing: -2px; }
 @media (max-width: 768px) { .hero-title { font-size: 3rem; } }
 
 /* --- Tarjetas y Formularios --- */
-.card { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.05); }
+.card { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.06); }
 .card-hover { transition: transform 0.3s, border-color 0.3s; }
 .card-hover:hover { transform: translateY(-5px); border-color: var(--color-brand-yellow); }
-.form-dark-panel { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.05); }
+.form-dark-panel { background-color: var(--color-bg-panel); border: 1px solid rgba(255,255,255,0.06); }
+
+/* Aside con acento: ahora turquesa en vez de amarillo/warning */
+.form-dark-panel.border-warning,
+aside.border-warning {
+    border-color: var(--color-brand-yellow) !important;
+}
 
 .form-control:focus, .form-select:focus {
-    background-color: #2d3748;
+    background-color: #123e50;
     border-color: var(--color-brand-yellow);
     color: white;
-    box-shadow: 0 0 0 0.25rem rgba(250, 204, 21, 0.25);
+    box-shadow: 0 0 0 0.25rem rgba(45, 212, 191, 0.25);
 }
 
 /* --- Botones Flotantes --- */
@@ -99,8 +129,11 @@ body {
 .custom-table th { background-color: transparent; color: var(--color-text-muted); border-bottom: 1px solid rgba(255,255,255,0.1); }
 .custom-table td { background-color: var(--color-bg-panel); border-color: transparent; }
 
-.badge-estado-pendiente { background-color: #eab308; color: #000; }
+.badge-estado-pendiente { background-color: #0ea5e9; color: #fff; }
 .badge-estado-confirmado { background-color: #22c55e; color: #fff; }
+
+/* bg-brand-yellow (usado en badges/contadores) también turquesa */
+.bg-brand-yellow { background-color: var(--color-brand-yellow) !important; }
 
 /* Animaciones de DOM */
 .fila-pedido { animation: fadeIn 0.35s ease; }
