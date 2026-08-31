@@ -47,9 +47,14 @@
         {% endif %}
 
         <div class="form-dark-panel p-4 rounded-4 mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="text-brand-yellow m-0">Registro Manual</h5>
-            <span class="badge bg-brand-yellow text-dark fs-6">Total Pedidos: <span id="contador-pedidos">{{ resumen.total_pedidos }}</span></span>
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h5 class="text-brand-yellow m-0">Registro Manual (versión anterior - JS)</h5>
+            <div class="d-flex align-items-center gap-2">
+              <a href="{{ url_for('nuevo_pedido') }}" class="btn btn-brand-yellow btn-sm fw-bold">
+                <i class="fa-solid fa-plus me-1"></i> Registrar Pedido (Flask-WTF)
+              </a>
+              <span class="badge bg-brand-yellow text-dark fs-6">Total Pedidos: <span id="contador-pedidos">{{ resumen.total_pedidos }}</span></span>
+            </div>
           </div>
 
           <form id="form-pedido" novalidate>

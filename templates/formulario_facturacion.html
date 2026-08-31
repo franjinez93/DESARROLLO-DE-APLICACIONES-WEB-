@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Registrar Pedido{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="padding-top: 100px;">
+  <section class="mb-5 pt-4">
+    <h2 class="section-title">Registro Manual de Pedido</h2>
+    <p class="text-muted">Registra un nuevo pedido para el panel de facturación.</p>
+
+    <div class="form-dark-panel p-4 rounded-4">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-3">
+            {{ form.cliente.label(class="form-label fw-semibold") }} <span class="text-danger">*</span>
+            {{ form.cliente(class="form-control bg-dark text-white" + (" is-invalid" if form.cliente.errors else "")) }}
+            {% for error in form.cliente.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 col-md-3">
+            {{ form.producto.label(class="form-label fw-semibold") }} <span class="text-danger">*</span>
+            {{ form.producto(class="form-select bg-dark text-white" + (" is-invalid" if form.producto.errors else "")) }}
+            {% for error in form.producto.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-6 col-md-2">
+            {{ form.cantidad.label(class="form-label fw-semibold") }} <span class="text-danger">*</span>
+            {{ form.cantidad(class="form-control bg-dark text-white" + (" is-invalid" if form.cantidad.errors else "")) }}
+            {% for error in form.cantidad.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-6 col-md-2">
+            {{ form.metodo_pago.label(class="form-label fw-semibold") }} <span class="text-danger">*</span>
+            {{ form.metodo_pago(class="form-select bg-dark text-white" + (" is-invalid" if form.metodo_pago.errors else "")) }}
+            {% for error in form.metodo_pago.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 col-md-2 d-grid">
+            {{ form.enviar(class="btn btn-outline-light") }}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <a href="{{ url_for('facturacion') }}" class="btn btn-outline-light mt-4">← Volver a facturación</a>
+  </section>
+</div>
+{% endblock %}

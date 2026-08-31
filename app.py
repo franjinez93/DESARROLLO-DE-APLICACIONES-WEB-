@@ -1,15 +1,27 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, flash
+
+from forms.producto_form import ProductoForm
+from forms.cliente_form import ClienteForm
+from forms.proveedor_form import ProveedorForm
+from forms.facturacion_form import PedidoForm
 
 app = Flask(__name__)
 
 # =========================================================
+#  CONFIGURACIÓN DE SEGURIDAD (Semana 11)
+#  La SECRET_KEY es obligatoria para que Flask-WTF pueda
+#  generar y verificar los tokens de protección CSRF.
+# =========================================================
+app.config["SECRET_KEY"] = "clave-secreta-farmacia-central-2026"
+
+# =========================================================
 #  DATOS DE EJEMPLO (temporales, sin base de datos - Semana 10)
+#  Se mantienen íntegros los datos y estructuras desarrolladas
+#  en la semana anterior.
 # =========================================================
 
-# Variable simple
 NOMBRE_FARMACIA = "Farmacia Central"
 
-# Diccionario con información general del negocio
 INFO_FARMACIA = {
     "anios_experiencia": 20,
     "horario_semana": "7:00 - 21:00",
@@ -18,7 +30,6 @@ INFO_FARMACIA = {
     "envio_disponible": True,
 }
 
-# Lista de diccionarios: servicios que ofrece la farmacia
 SERVICIOS = [
     {"icono": "💊", "nombre": "Medicamentos", "resumen": "Genéricos y de marca con garantía de calidad y a precios accesibles.",
      "detalle": "Contamos con más de 500 presentaciones registradas en ARCSA, provenientes de laboratorios certificados.",
@@ -40,7 +51,6 @@ SERVICIOS = [
      "disponible": False},
 ]
 
-# Lista de diccionarios: productos destacados (con stock para condicional Disponible/Agotado)
 PRODUCTOS_DESTACADOS = [
     {"nombre": "Paracetamol 500mg", "categoria": "Medicamentos", "precio": 2.50, "stock": 25,
      "icono": "💊", "descripcion": "Analgésico y antipirético de uso común."},
@@ -56,7 +66,6 @@ PRODUCTOS_DESTACADOS = [
      "icono": "🧴", "descripcion": "Caja de 100 unidades, uso médico y doméstico."},
 ]
 
-# Lista de diccionarios: proveedores registrados
 PROVEEDORES = [
     {"nombre": "Distribuidora FarmaEcuador", "producto": "Medicamentos genéricos",
      "telefono": "0991234567", "email": "ventas@farmaecuador.com"},
@@ -64,7 +73,6 @@ PROVEEDORES = [
      "telefono": "0987654321", "email": "contacto@naturlife.com"},
 ]
 
-# Lista de diccionarios: pedidos registrados (para el panel de facturación)
 PEDIDOS = [
     {"cliente": "María Pérez", "producto": "Paracetamol 500mg", "cantidad": 2, "total": 5.00,
      "estado": "Entregado", "fecha": "2026-08-10", "metodo_pago": "Efectivo"},
@@ -78,7 +86,6 @@ PEDIDOS = [
      "estado": "Pendiente", "fecha": "2026-08-20", "metodo_pago": "Efectivo"},
 ]
 
-# Equipo de trabajo (para la página "Nosotros")
 EQUIPO = [
     {"nombre": "Q.F. Edgar Jinez", "cargo": "Director Técnico", "icono": "👨‍⚕️",
      "descripcion": "Químico Farmacéutico responsable, 12 años de experiencia."},
@@ -88,7 +95,6 @@ EQUIPO = [
      "descripcion": "Coordina las entregas a domicilio en toda la ciudad."},
 ]
 
-# Valores institucionales (para la página "Nosotros")
 VALORES = [
     {"icono": "🤝", "titulo": "Confianza", "descripcion": "Construimos relaciones duraderas basadas en la honestidad."},
     {"icono": "⏱️", "titulo": "Rapidez", "descripcion": "Atención ágil, tanto en tienda como en pedidos a domicilio."},
@@ -117,6 +123,10 @@ def calcular_resumen_facturacion(pedidos):
         "cancelados": cancelados,
     }
 
+
+# =========================================================
+#  RUTAS EXISTENTES (Semana 10) - Se mantienen sin cambios
+# =========================================================
 
 @app.route("/")
 def index():
@@ -157,7 +167,7 @@ def servicios():
 def productos():
     """Tienda online: catálogo destacado, selección y carrito."""
     return render_template(
-        "productos.html",
+        "Productos.html",
         nombre_farmacia=NOMBRE_FARMACIA,
         productos=PRODUCTOS_DESTACADOS,
     )
@@ -165,15 +175,15 @@ def productos():
 
 @app.route("/clientes")
 def clientes():
-    """Registro / contacto de clientes."""
-    return render_template("clientes.html", nombre_farmacia=NOMBRE_FARMACIA)
+    """Registro / contacto de clientes (vista de información de contacto)."""
+    return render_template("Clientes.html", nombre_farmacia=NOMBRE_FARMACIA)
 
 
 @app.route("/proveedores")
 def proveedores():
-    """Registro de proveedores."""
+    """Listado de proveedores registrados."""
     return render_template(
-        "proveedores.html",
+        "Proveedores.html",
         nombre_farmacia=NOMBRE_FARMACIA,
         proveedores=PROVEEDORES,
     )
@@ -184,10 +194,114 @@ def facturacion():
     """Panel de pedidos / facturación (visible tras login simulado)."""
     resumen = calcular_resumen_facturacion(PEDIDOS)
     return render_template(
-        "facturacion.html",
+        "Facturacion.html",
         nombre_farmacia=NOMBRE_FARMACIA,
         pedidos=PEDIDOS,
         resumen=resumen,
+    )
+
+
+# =========================================================
+#  RUTAS NUEVAS (Semana 11) - Formularios con Flask-WTF
+#  Cada ruta acepta GET (mostrar el formulario) y POST
+#  (procesar los datos). Los datos solo se procesan cuando
+#  form.validate_on_submit() retorna True.
+# =========================================================
+
+@app.route("/productos/nuevo", methods=["GET", "POST"])
+def nuevo_producto():
+    """Registro de un nuevo producto mediante ProductoForm."""
+    form = ProductoForm()
+
+    if form.validate_on_submit():
+        nuevo = {
+            "nombre": form.nombre.data,
+            "categoria": form.categoria.data,
+            "descripcion": form.descripcion.data,
+            "precio": float(form.precio.data),
+            "stock": form.stock.data,
+            "icono": "💊",
+        }
+        PRODUCTOS_DESTACADOS.append(nuevo)
+        flash(f"Producto '{nuevo['nombre']}' registrado correctamente.", "success")
+        return redirect(url_for("productos"))
+
+    return render_template(
+        "formulario_producto.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        titulo_formulario="Registrar Producto",
+        form=form,
+    )
+
+
+@app.route("/clientes/nuevo", methods=["GET", "POST"])
+def nuevo_cliente():
+    """Formulario de contacto de clientes mediante ClienteForm."""
+    form = ClienteForm()
+
+    if form.validate_on_submit():
+        flash(f"Gracias {form.nombre.data}, hemos recibido tu consulta.", "success")
+        return redirect(url_for("clientes"))
+
+    return render_template(
+        "formulario_cliente.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        form=form,
+    )
+
+
+@app.route("/proveedores/nuevo", methods=["GET", "POST"])
+def nuevo_proveedor():
+    """Registro de un nuevo proveedor mediante ProveedorForm."""
+    form = ProveedorForm()
+
+    if form.validate_on_submit():
+        nuevo = {
+            "nombre": form.nombre.data,
+            "producto": form.producto.data,
+            "telefono": form.telefono.data,
+            "email": form.email.data,
+        }
+        PROVEEDORES.append(nuevo)
+        flash(f"Proveedor '{nuevo['nombre']}' registrado correctamente.", "success")
+        return redirect(url_for("proveedores"))
+
+    return render_template(
+        "formulario_proveedor.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        form=form,
+    )
+
+
+@app.route("/facturacion/nuevo", methods=["GET", "POST"])
+def nuevo_pedido():
+    """Registro manual de un nuevo pedido mediante PedidoForm."""
+    form = PedidoForm()
+    # Las opciones del SelectField se cargan dinámicamente desde el catálogo.
+    form.producto.choices = [(p["nombre"], p["nombre"]) for p in PRODUCTOS_DESTACADOS]
+
+    if form.validate_on_submit():
+        producto_info = next(
+            (p for p in PRODUCTOS_DESTACADOS if p["nombre"] == form.producto.data), None
+        )
+        precio_unitario = producto_info["precio"] if producto_info else 0
+        nuevo = {
+            "cliente": form.cliente.data,
+            "producto": form.producto.data,
+            "cantidad": form.cantidad.data,
+            "total": round(precio_unitario * form.cantidad.data, 2),
+            "estado": "Pendiente",
+            "fecha": "2026-08-28",
+            "metodo_pago": form.metodo_pago.data,
+        }
+        PEDIDOS.append(nuevo)
+        flash(f"Pedido de '{nuevo['cliente']}' registrado correctamente.", "success")
+        return redirect(url_for("facturacion"))
+
+    return render_template(
+        "formulario_facturacion.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        form=form,
     )
 
 

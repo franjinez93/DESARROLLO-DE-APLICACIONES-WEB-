@@ -20,6 +20,20 @@
   {% include "components/navbar.html" %}
 
   <main>
+    <!-- Mensajes flash (usados por las rutas de formularios Flask-WTF) -->
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        <div class="container" style="padding-top: 100px;">
+          {% for categoria, mensaje in mensajes %}
+            <div class="alert alert-{{ categoria }} alert-dismissible fade show rounded-4" role="alert">
+              {{ mensaje }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     {% block content %}{% endblock %}
   </main>
 
