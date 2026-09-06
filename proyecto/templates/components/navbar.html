@@ -1,0 +1,30 @@
+<!-- NAVBAR ESTILO IMAGEN REFERENCIA (componente reutilizable) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-transparent fixed-top transition-navbar" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+      <i class="fa-solid fa-notes-medical text-brand-yellow"></i>
+      Farmacia <span class="text-brand-yellow">{{ nombre_farmacia.split(' ')[-1] if nombre_farmacia else 'Central' }}</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-center">
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('index') }}#inicio">Inicio</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nosotros') }}">Nosotros</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('servicios') }}">Servicios</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('productos') }}">Productos</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('clientes') }}">Clientes</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('proveedores') }}">Proveedores</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('facturacion') }}">Facturación</a></li>
+        <!-- BOTÓN INICIAR SESIÓN (Abre Modal) -->
+        <li class="nav-item ms-lg-3">
+          <a class="nav-link text-brand-yellow fw-semibold cursor-pointer" id="btn-nav-login" data-bs-toggle="modal" data-bs-target="#modalLogin">
+            <i class="fa-solid fa-right-to-bracket"></i> Ingresar al sistema
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

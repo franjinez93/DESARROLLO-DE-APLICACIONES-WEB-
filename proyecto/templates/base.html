@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Farmacia Central{% endblock %}</title>
+
+  <!-- Bootstrap CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Hoja de estilos externa servida por Flask -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  {% include "components/navbar.html" %}
+
+  <main>
+    <!-- Mensajes flash (usados por las rutas de formularios Flask-WTF) -->
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+      {% if mensajes %}
+        <div class="container" style="padding-top: 100px;">
+          {% for categoria, mensaje in mensajes %}
+            <div class="alert alert-{{ categoria }} alert-dismissible fade show rounded-4" role="alert">
+              {{ mensaje }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "components/footer.html" %}
+
+  <!-- BOTONES FLOTANTES -->
+  <div class="floating-buttons">
+    <button id="btn-flotante-carrito" class="btn btn-brand-yellow position-relative shadow mb-3 d-block" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <span id="badge-carrito" class="badge bg-danger position-absolute top-0 start-100 translate-middle" style="display:none;">0</span>
+    </button>
+    <a href="https://wa.me/593983737588" target="_blank" class="btn btn-whatsapp shadow d-block">
+      <i class="fa-brands fa-whatsapp fs-4"></i>
+    </a>
+  </div>
+
+  <!-- MODAL CARRITO -->
+  <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title text-brand-yellow fw-bold"><i class="fa-solid fa-cart-shopping"></i> Tu Carrito</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="lista-carrito"><p class="text-center text-muted py-3">Tu carrito está vacío.</p></div>
+          <div id="carrito-mensaje"></div>
+        </div>
+        <div class="modal-footer border-secondary d-flex justify-content-between">
+          <div class="fw-bold fs-5">Total: <span id="total-carrito" class="text-brand-yellow">$0.00</span></div>
+          <div class="d-flex gap-2">
+            <button id="btn-vaciar-carrito" class="btn btn-outline-danger btn-sm">Vaciar</button>
+            <button id="btn-confirmar-pedido" class="btn btn-brand-yellow btn-sm">
+              <span id="spinner-confirmar" class="spinner-border spinner-border-sm d-none"></span>
+              <span id="texto-confirmar">Confirmar Pedido</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INICIO DE SESIÓN -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-bottom-0">
+          <h5 class="modal-title text-brand-yellow fw-bold"><i class="fa-solid fa-user-lock"></i> Inicio de Sesión</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pb-0">
+          <form id="form-login" novalidate>
+            <div class="mb-3">
+              <label class="form-label text-light">Usuario o Correo</label>
+              <input type="text" class="form-control bg-dark text-white" id="login-user" placeholder="ej: admin" required>
+            </div>
+            <div class="mb-4">
+              <label class="form-label text-light">Contraseña</label>
+              <input type="password" class="form-control bg-dark text-white" id="login-pass" placeholder="***" required>
+            </div>
+            <div id="login-mensaje"></div>
+            <button type="submit" class="btn btn-brand-yellow w-100 fw-bold mb-3">Acceder al Sistema</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS y Script Propio servidos por Flask -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

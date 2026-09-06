@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Contacto{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="padding-top: 100px;">
+  <section class="mb-5 pt-4">
+    <h2 class="section-title">Escríbenos tu Consulta</h2>
+    <p class="text-muted">Nuestro equipo de {{ nombre_farmacia }} te contactará a la brevedad.</p>
+
+    <div class="form-dark-panel p-4 rounded-4">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            {{ form.nombre.label(class="form-label text-light") }} <span class="text-danger">*</span>
+            {{ form.nombre(class="form-control bg-dark text-white" + (" is-invalid" if form.nombre.errors else "")) }}
+            {% for error in form.nombre.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            {{ form.email.label(class="form-label text-light") }} <span class="text-danger">*</span>
+            {{ form.email(class="form-control bg-dark text-white" + (" is-invalid" if form.email.errors else "")) }}
+            {% for error in form.email.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            {{ form.tipo_consulta.label(class="form-label text-light") }} <span class="text-danger">*</span>
+            {{ form.tipo_consulta(class="form-select bg-dark text-white" + (" is-invalid" if form.tipo_consulta.errors else "")) }}
+            {% for error in form.tipo_consulta.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            {{ form.asunto.label(class="form-label text-light") }} <span class="text-danger">*</span>
+            {{ form.asunto(class="form-control bg-dark text-white" + (" is-invalid" if form.asunto.errors else "")) }}
+            {% for error in form.asunto.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12">
+            {{ form.mensaje.label(class="form-label text-light") }} <span class="text-danger">*</span>
+            {{ form.mensaje(class="form-control bg-dark text-white", rows="4") }}
+            {% for error in form.mensaje.errors %}
+              <div class="invalid-feedback d-block">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-12 mt-3">
+            {{ form.enviar(class="btn btn-brand-yellow w-100 fw-bold") }}
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Inicio{% endblock %}
+
+{% block content %}
+    <!-- SECCIÓN INICIO (HERO SECTION) -->
+    <section id="inicio" class="hero-section d-flex align-items-center">
+      <div class="container hero-content">
+        <div class="row">
+          <div class="col-12 col-lg-8">
+            <h1 class="display-2 fw-bolder text-white mb-4 hero-title">
+              Todo para<br>cuidar,<br>prevenir y<br>sanar.
+            </h1>
+            <p class="lead text-light mb-5 fs-4">
+              {{ nombre_farmacia }}: medicamentos, vitaminas, cuidado personal y equipos
+              para profesionales, pacientes y hogares.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+              <a href="{{ url_for('productos') }}" class="btn btn-brand-yellow btn-lg px-4 py-2 fw-bold">Ver productos</a>
+              <a href="{{ url_for('clientes') }}" class="btn btn-outline-light btn-lg px-4 py-2">Solicitar cotización</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container my-5">
+      <!-- RESUMEN QUIÉNES SOMOS (con enlace a página completa) -->
+      <section id="quienes-somos" class="mb-5 pt-4">
+        <h2 class="section-title">Quiénes Somos</h2>
+        <div class="row align-items-center g-4">
+          <div class="col-12 col-md-7">
+            <p class="text-muted lead">
+              {{ nombre_farmacia|upper }} es un establecimiento farmacéutico con más de
+              {{ info.anios_experiencia }} años de experiencia al servicio de la comunidad.
+            </p>
+            <p class="text-muted">
+              Contamos con un equipo de profesionales comprometidos con brindar una atención personalizada,
+              nuestra misión, visión y equipo humano.
+            </p>
+            <a href="{{ url_for('nosotros') }}" class="btn btn-outline-light">Conócenos mejor →</a>
+          </div>
+          <div class="col-12 col-md-5 text-center">
+            <img src="https://img.magnific.com/foto-gratis/farmaceutica-joven-hispana-sonriendo-segura-pie-gesto-brazos-cruzados-farmacia_839833-7087.jpg?semt=ais_hybrid&w=740&q=80" alt="{{ nombre_farmacia }}" class="img-fluid rounded-4 shadow-lg border border-secondary">
+          </div>
+        </div>
+      </section>
+
+      <!-- RESUMEN SERVICIOS (generado dinámicamente, con enlace a página completa) -->
+      <section id="servicios" class="mb-5 pt-4">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+          <h2 class="section-title m-0">Servicios o Productos</h2>
+          <a href="{{ url_for('servicios') }}" class="btn btn-outline-light btn-sm">Ver todos los servicios →</a>
+        </div>
+        <div class="row g-4">
+          {% for servicio in servicios[:3] %}
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">{{ servicio.icono }} {{ servicio.nombre }}</h5>
+                <p class="card-text text-muted">{{ servicio.resumen }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <!-- ARTÍCULO DESTACADO Y ASIDE -->
+      <div class="row g-4 my-4">
+        <div class="col-12">
+          <div class="form-dark-panel p-4 rounded-4 text-center">
+            <h3 class="text-brand-yellow mb-3">Conoce nuestras promociones</h3>
+            <p class="text-light">Mantente informado sobre los cuidados esenciales para tu bienestar y el de tu familia.</p>
+          </div>
+        </div>
+        <div class="col-12 col-md-5">
+          <aside class="form-dark-panel p-4 rounded-4 h-100 border-start border-4 border-warning">
+            <h4 class="text-brand-yellow">Información</h4>
+            <ul class="list-unstyled text-muted mt-3">
+              <li class="mb-2"><strong>Promoción:</strong> {{ info.promocion }}</li>
+              <li class="mb-2"><strong>Lunes a Viernes:</strong> {{ info.horario_semana }}</li>
+              <li class="mb-2"><strong>Fines de semana:</strong> {{ info.horario_finde }}</li>
+              <li>
+                <strong>Envío:</strong>
+                {% if info.envio_disponible %}
+                  Disponible en toda la ciudad.
+                {% else %}
+                  No disponible por el momento.
+                {% endif %}
+              </li>
+            </ul>
+          </aside>
+        </div>
+        <div class="col-12 col-md-7 text-center">
+          <iframe class="rounded-4 w-100 shadow" height="315" src="https://www.youtube.com/embed/d1Up8I-0vzI?si=Zuj4SDmWYhfrTKak" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+{% endblock %}
