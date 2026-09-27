@@ -4,46 +4,62 @@
 
 {% block content %}
     <div class="container my-5" style="padding-top: 100px;">
-      <!-- SECCIÓN TIENDA ONLINE -->
+      <!-- SECCIÓN TIENDA ONLINE (100% datos reales desde PostgreSQL) -->
       <section id="tienda-online" class="mb-5 pt-4">
         <h2 class="section-title">🛒 Tienda Online</h2>
-        <p class="text-muted">Explora nuestros productos disponibles.</p>
+        <p class="text-muted">Explora nuestros productos disponibles y agrégalos a tu carrito.</p>
 
         <div class="d-flex justify-content-between align-items-center mt-4 mb-3 flex-wrap gap-2">
-          <h5 class="text-brand-yellow m-0">⭐ Productos Destacados</h5>
+          <h5 class="text-brand-yellow m-0">⭐ Catálogo</h5>
+          {% if current_user.is_authenticated and current_user.rol == 'admin' %}
           <a href="{{ url_for('nuevo_producto') }}" class="btn btn-brand-yellow btn-sm fw-bold">
             <i class="fa-solid fa-plus me-1"></i> Registrar Producto
           </a>
+          {% endif %}
         </div>
 
-        <!-- Catálogo generado dinámicamente desde SQLite con Jinja2 (for + if/else) -->
+        <!-- Catálogo generado dinámicamente desde PostgreSQL con Jinja2 (for + if/else) -->
         <div class="row g-4" id="catalogo-dinamico">
           {% for producto in productos %}
           <div class="col-12 col-sm-6 col-md-4">
             <div class="card h-100 p-3 card-hover text-center"
                  data-nombre="{{ producto.nombre }}"
-                 data-categoria="{{ producto.categoria }}"
-                 data-precio="{{ producto.precio }}">
-              <div class="card-body">
-                <span class="display-5">{{ producto.icono }}</span>
+                 data-precio="{{ producto.precio }}"
+                 data-icono="{{ producto.icono if producto.icono else '💊' }}">
+              <div class="card-body d-flex flex-column">
+                <span class="display-5">{{ producto.icono if producto.icono else '💊' }}</span>
                 <h5 class="card-title text-brand-yellow mt-2">{{ producto.nombre }}</h5>
+                {% if producto.categoria %}
                 <p class="badge bg-secondary mb-2">{{ producto.categoria|upper }}</p>
-                <p class="card-text text-muted small">{{ producto.descripcion }}</p>
+                {% endif %}
+                <p class="card-text text-muted small flex-grow-1">{{ producto.descripcion }}</p>
                 <p class="fw-bold text-brand-yellow fs-5">${{ "%.2f"|format(producto.precio) }}</p>
 
                 {% if producto.stock > 0 %}
-                  <span class="badge bg-success">✔ Disponible ({{ producto.stock }})</span>
-                {% else %}
-                  <span class="badge bg-danger">✘ Agotado</span>
-                {% endif %}
+                  <span class="badge bg-success mb-2">✔ Disponible ({{ producto.stock }})</span>
 
+                  <!-- Selector de cantidad: limitado entre 1 y el stock disponible -->
+                  <div class="input-group input-group-sm mb-2 mx-auto" style="max-width: 130px;">
+                    <button type="button" class="btn btn-outline-light btn-restar-cantidad" aria-label="Disminuir cantidad">−</button>
+                    <input type="number" class="form-control text-center bg-dark text-white cantidad-input"
+                           value="1" min="1" max="{{ producto.stock }}" inputmode="numeric"
+                           aria-label="Cantidad a agregar">
+                    <button type="button" class="btn btn-outline-light btn-sumar-cantidad" aria-label="Aumentar cantidad">+</button>
+                  </div>
+
+                  <button type="button" class="btn btn-outline-light btn-sm agregar-carrito mt-auto">
+                    <i class="fa-solid fa-cart-plus me-1"></i> Agregar al carrito
+                  </button>
+                {% else %}
+                  <span class="badge bg-danger mt-auto">✘ Agotado</span>
+                {% endif %}
               </div>
             </div>
           </div>
           {% else %}
           <div class="col-12">
             <div class="alert bg-dark border-secondary text-center text-muted">
-              📭 Aún no hay productos registrados. Usa el botón "Registrar Producto" para agregar el primero.
+              📭 Aún no hay productos registrados en la base de datos. Usa el botón "Registrar Producto" para agregar el primero.
             </div>
           </div>
           {% endfor %}

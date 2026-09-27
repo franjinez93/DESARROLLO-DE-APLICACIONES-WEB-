@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Panel{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="padding-top: 100px;">
+  <section class="mb-5 pt-4">
+    <h2 class="section-title">Bienvenido, {{ current_user.nombre }}</h2>
+    <p class="text-muted">
+      Rol de tu cuenta:
+      <span class="badge bg-brand-yellow text-dark">{{ current_user.rol|capitalize }}</span>
+    </p>
+
+    <div class="row g-4 mt-3">
+      <div class="col-12 col-md-6">
+        <div class="form-dark-panel p-4 rounded-4 h-100">
+          <h5 class="text-brand-yellow"><i class="fa-solid fa-cart-shopping me-2"></i>Comprar</h5>
+          <p class="text-muted small">Explora el catálogo y agrega productos a tu carrito.</p>
+          <a href="{{ url_for('productos') }}" class="btn btn-outline-light btn-sm">Ver productos</a>
+        </div>
+      </div>
+
+      {% if current_user.rol == 'admin' %}
+      <div class="col-12 col-md-6">
+        <div class="form-dark-panel p-4 rounded-4 h-100">
+          <h5 class="text-brand-yellow"><i class="fa-solid fa-users me-2"></i>Clientes</h5>
+          <p class="text-muted small">Consulta las solicitudes de contacto registradas.</p>
+          <a href="{{ url_for('clientes') }}" class="btn btn-outline-light btn-sm">Ver clientes</a>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-dark-panel p-4 rounded-4 h-100">
+          <h5 class="text-brand-yellow"><i class="fa-solid fa-truck me-2"></i>Proveedores</h5>
+          <p class="text-muted small">Administra los proveedores registrados.</p>
+          <a href="{{ url_for('proveedores') }}" class="btn btn-outline-light btn-sm">Ver proveedores</a>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-dark-panel p-4 rounded-4 h-100">
+          <h5 class="text-brand-yellow"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Facturación</h5>
+          <p class="text-muted small">Revisa el historial de pedidos y el resumen de ventas.</p>
+          <a href="{{ url_for('facturacion') }}" class="btn btn-outline-light btn-sm">Ver facturación</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

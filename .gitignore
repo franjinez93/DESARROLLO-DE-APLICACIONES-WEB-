@@ -1,7 +1,7 @@
-.venv/
-venv/
-virtual/
+.env
 __pycache__/
 *.pyc
-data/*.db
-.env
+venv/
+.venv/
+*.egg-info/
+instance/

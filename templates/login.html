@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="padding-top: 100px;">
+  <section class="mb-5 pt-4 mx-auto" style="max-width: 480px;">
+    <h2 class="section-title text-center">Iniciar Sesión</h2>
+    <p class="text-muted text-center">Accede a tu cuenta de {{ nombre_farmacia }}.</p>
+
+    <div class="form-dark-panel p-4 rounded-4">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.email.label(class="form-label text-light") }}
+          {{ form.email(class="form-control bg-dark text-white" + (" is-invalid" if form.email.errors else "")) }}
+          {% for error in form.email.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          {{ form.password.label(class="form-label text-light") }}
+          {{ form.password(class="form-control bg-dark text-white" + (" is-invalid" if form.password.errors else "")) }}
+          {% for error in form.password.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        {{ form.enviar(class="btn btn-brand-yellow w-100 fw-bold") }}
+      </form>
+
+      <p class="text-muted text-center mt-3 mb-0">
+        ¿No tienes cuenta?
+        <a href="{{ url_for('registro') }}" class="text-brand-yellow">Regístrate aquí</a>
+      </p>
+    </div>
+  </section>
+</div>
+{% endblock %}

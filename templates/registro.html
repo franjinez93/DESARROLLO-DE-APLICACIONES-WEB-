@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ nombre_farmacia }} - Crear Cuenta{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="padding-top: 100px;">
+  <section class="mb-5 pt-4 mx-auto" style="max-width: 520px;">
+    <h2 class="section-title text-center">Crear Cuenta</h2>
+    <p class="text-muted text-center">Regístrate para comprar en {{ nombre_farmacia }}.</p>
+
+    <div class="form-dark-panel p-4 rounded-4">
+      <form method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.nombre.label(class="form-label text-light") }} <span class="text-danger">*</span>
+          {{ form.nombre(class="form-control bg-dark text-white" + (" is-invalid" if form.nombre.errors else "")) }}
+          {% for error in form.nombre.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.email.label(class="form-label text-light") }} <span class="text-danger">*</span>
+          {{ form.email(class="form-control bg-dark text-white" + (" is-invalid" if form.email.errors else "")) }}
+          {% for error in form.email.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          {{ form.password.label(class="form-label text-light") }} <span class="text-danger">*</span>
+          {{ form.password(class="form-control bg-dark text-white" + (" is-invalid" if form.password.errors else "")) }}
+          {% for error in form.password.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          {{ form.confirmar_password.label(class="form-label text-light") }} <span class="text-danger">*</span>
+          {{ form.confirmar_password(class="form-control bg-dark text-white" + (" is-invalid" if form.confirmar_password.errors else "")) }}
+          {% for error in form.confirmar_password.errors %}
+            <div class="invalid-feedback d-block">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        {{ form.enviar(class="btn btn-brand-yellow w-100 fw-bold") }}
+      </form>
+
+      <p class="text-muted text-center mt-3 mb-0">
+        ¿Ya tienes cuenta?
+        <a href="{{ url_for('login') }}" class="text-brand-yellow">Inicia sesión aquí</a>
+      </p>
+    </div>
+  </section>
+</div>
+{% endblock %}

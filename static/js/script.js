@@ -1,289 +1,183 @@
 // ============================================================
 //  FARMACIA CENTRAL - script.js
-//  Fundamentos de JavaScript: manipulación del DOM y eventos
 //  Estudiante: Edgar Francisco Jinez Montesdeoca
+//
+//  NOTA (Semana 14): se eliminó todo el catálogo, formulario de
+//  selección y panel de pedidos que usaban datos FALSOS/hardcodeados
+//  (catalogoPorCategoria, pedidosRegistrados, etc.). Ahora:
+//  - Los productos que ves en /productos vienen 100% de PostgreSQL
+//    (renderizados por Flask/Jinja2 en Productos.html).
+//  - El botón "Agregar al carrito" de cada producto real dispara
+//    agregarAlCarrito() usando los data-attributes de esa tarjeta.
+//  - "Confirmar Pedido" ya NO es una simulación: envía el carrito al
+//    backend (ruta /carrito/confirmar) y se guarda como pedido real
+//    en la base de datos, asociado al usuario que inició sesión.
+//  NOTA (ronda de ajustes): el carrito ahora se guarda en localStorage
+//  (guardarCarrito / cargarCarritoGuardado) para que NO se vacíe al
+//  cambiar de página. Antes vivía solo en la variable "carrito" y se
+//  perdía en cada recarga, por eso el ícono flotante y "Comprar" a
+//  veces se veían vacíos aunque ya hubieras agregado productos.
 // ============================================================
 
-let totalProductos = 0;
-let carrito = [];
-let pedidosRegistrados = [];
-let contadorIdPedido = 1;
+const CARRITO_STORAGE_KEY = "farmacia_carrito";
 
-const catalogoPorCategoria = {
-  "Medicamentos": [
-    { nombre: "Paracetamol 500mg x20", descripcion: "Analgésico y antipirético.", precio: 2.50, imagen: "💊" },
-    { nombre: "Ibuprofeno 400mg x12", descripcion: "Antiinflamatorio para dolor muscular.", precio: 3.20, imagen: "💊" },
-    { nombre: "Amoxicilina 500mg x21", descripcion: "Antibiótico de amplio espectro.", precio: 6.80, imagen: "💊" },
-    { nombre: "Omeprazol 20mg x14", descripcion: "Protector gástrico.", precio: 4.50, imagen: "💊" }
-  ],
-  "Naturales": [
-    { nombre: "Vitamina C 1000mg x30", descripcion: "Refuerza el sistema inmune.", precio: 5.80, imagen: "🌿" },
-    { nombre: "Omega 3 1000mg x60", descripcion: "Ácidos grasos para el corazón.", precio: 9.50, imagen: "🌿" },
-    { nombre: "Valeriana Extracto x30", descripcion: "Relajación y sueño reparador.", precio: 6.00, imagen: "🌿" }
-  ],
-  "Cuidado Personal": [
-    { nombre: "Gel Antibacterial 250ml", descripcion: "Higiene personal con 70% alcohol.", precio: 3.20, imagen: "🧴" },
-    { nombre: "Mascarillas KN95 x10", descripcion: "Protección respiratoria.", precio: 4.80, imagen: "🧴" },
-    { nombre: "Crema Hidratante SPF50", descripcion: "Protección solar y cuidado de la piel.", precio: 11.00, imagen: "🧴" }
-  ],
-  "Equipos Médicos": [
-    { nombre: "Tensiómetro Digital", descripcion: "Medición de presión arterial.", precio: 35.00, imagen: "🩺" },
-    { nombre: "Glucómetro + 50 tiras", descripcion: "Control de glucosa en sangre.", precio: 28.50, imagen: "🩺" },
-    { nombre: "Oxímetro de Pulso", descripcion: "Mide saturación de oxígeno.", precio: 18.00, imagen: "🩺" }
-  ]
-};
+let carrito = cargarCarritoGuardado();
 
-const productosDestacados = [
-  catalogoPorCategoria["Medicamentos"][0],
-  catalogoPorCategoria["Naturales"][0],
-  catalogoPorCategoria["Cuidado Personal"][0],
-  catalogoPorCategoria["Equipos Médicos"][0]
-];
+function cargarCarritoGuardado() {
+  try {
+    const guardado = localStorage.getItem(CARRITO_STORAGE_KEY);
+    const datos = guardado ? JSON.parse(guardado) : [];
+    return Array.isArray(datos) ? datos : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function guardarCarrito() {
+  try {
+    localStorage.setItem(CARRITO_STORAGE_KEY, JSON.stringify(carrito));
+  } catch (error) {
+    // Si el navegador bloquea localStorage (modo privado, etc.) el carrito
+    // simplemente no persiste entre páginas, pero sigue funcionando en la actual.
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Navbar scroll
+  // Efecto de navbar al hacer scroll
   const navbar = document.getElementById('mainNav');
   if (navbar) {
-      window.addEventListener('scroll', () => {
-          if (window.scrollY > 50) navbar.classList.add('scrolled');
-          else navbar.classList.remove('scrolled');
-      });
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) navbar.classList.add('scrolled');
+      else navbar.classList.remove('scrolled');
+    });
   }
 
-  inicializarCatalogo();
-  inicializarFormularioSeleccion();
+  inicializarBotonesAgregarCarrito(); // productos REALES (desde PostgreSQL)
   inicializarCarrito();
-  inicializarPanelPedidos();
-  inicializarFormularioContacto();
-  inicializarLogin(); // <--- NUEVA FUNCIÓN
-  actualizarContador();
+  inicializarMetodoPago();
+  actualizarBadgeCarrito(); // refleja de inmediato el carrito restaurado desde localStorage
 });
 
 // ============================================================
-//  LÓGICA DEL LOGIN SIMULADO
+//  CATÁLOGO REAL (desde PostgreSQL, renderizado por Flask/Jinja2)
 // ============================================================
-function inicializarLogin() {
-  const formLogin = document.getElementById("form-login");
-  if (!formLogin) return;
-
-  formLogin.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const user = document.getElementById("login-user");
-    const pass = document.getElementById("login-pass");
-
-    if (!user.value || !pass.value) {
-      mostrarMensaje("login-mensaje", "⚠️ Por favor, ingresa usuario y contraseña.", "danger");
-      return;
-    }
-
-    // Simular carga exitosa
-    mostrarMensaje("login-mensaje", "✅ Acceso concedido...", "success");
-
-    setTimeout(() => {
-      // 1. Cerrar el modal
-      bootstrap.Modal.getInstance(document.getElementById("modalLogin")).hide();
-
-      // 2. Cambiar la apariencia del botón en la barra de navegación
-      const btnNav = document.getElementById("btn-nav-login");
-      if (btnNav) {
-        btnNav.innerHTML = `<i class="fa-solid fa-user-check"></i> Hola, ${user.value}`;
-        btnNav.classList.remove("text-brand-yellow");
-        btnNav.classList.add("text-success");
-        // Quitar eventos del modal para que no se abra de nuevo
-        btnNav.removeAttribute("data-bs-toggle");
-        btnNav.removeAttribute("data-bs-target");
-      }
-
-      // 3. Desbloquear (hacer visible) el Panel de Pedidos
-      const panel = document.getElementById("panel-pedidos");
-      if (panel) {
-        panel.classList.remove("d-none"); // Quitar ocultamiento
-        panel.scrollIntoView({ behavior: 'smooth' }); // Llevar al usuario a la sección
-      }
-
-      formLogin.reset();
-    }, 1200);
-  });
-}
-
-// ============================================================
-//  RESTO DE LA LÓGICA DEL PROYECTO
-// ============================================================
-function inicializarCatalogo() {
-  const contenedor = document.getElementById("catalogo-dinamico");
-  const spinner = document.getElementById("spinner-catalogo");
-  if (!contenedor) return;
-
-  setTimeout(() => {
-    productosDestacados.forEach((producto) => {
-      contenedor.appendChild(crearTarjetaProducto(producto));
+function inicializarBotonesAgregarCarrito() {
+  // Botones +/- de cada tarjeta: ajustan el número ANTES de agregar al carrito
+  document.querySelectorAll(".btn-sumar-cantidad, .btn-restar-cantidad").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const card = boton.closest("[data-nombre]");
+      const input = card?.querySelector(".cantidad-input");
+      if (!input) return;
+      input.value = ajustarCantidad(input, boton.classList.contains("btn-sumar-cantidad") ? 1 : -1);
     });
-    if (spinner) spinner.classList.add("d-none");
-    contenedor.classList.remove("d-none");
-  }, 900);
-}
+  });
 
-function crearTarjetaProducto(producto) {
-  const col = document.createElement("div");
-  col.classList.add("col-12", "col-sm-6", "col-md-3", "mb-3");
-  col.innerHTML = `
-    <div class="card h-100 p-3 text-center card-hover">
-      <div class="card-body d-flex flex-column">
-        <div class="display-5 mb-2">${producto.imagen}</div>
-        <h6 class="card-title text-white fw-bold">${producto.nombre}</h6>
-        <p class="card-text small text-muted flex-grow-1">${producto.descripcion}</p>
-        <p class="fw-bold text-brand-yellow fs-5 mb-3">$${producto.precio.toFixed(2)}</p>
-        <button class="btn btn-outline-light btn-sm agregar-carrito mt-auto">Agregar al carrito</button>
-      </div>
-    </div>`;
-  col.querySelector(".agregar-carrito").addEventListener("click", () => agregarAlCarrito(producto));
-  return col;
-}
-
-function inicializarFormularioSeleccion() {
-  const form = document.getElementById("form-producto");
-  const selectCat = document.getElementById("prod-categoria");
-  const selectProd = document.getElementById("prod-nombre");
-  const inputCant = document.getElementById("prod-cantidad");
-  if (!form) return;
-
-  selectCat.addEventListener("change", () => {
-    const categoria = selectCat.value;
-    selectProd.innerHTML = '<option value="">-- Selecciona un producto --</option>';
-    selectProd.disabled = true;
-    ocultarPreview();
-    limpiarValidacion(selectProd);
-
-    if (!categoria) { marcarInvalido(selectCat, "Selecciona una categoría."); return; }
-
-    const productos = catalogoPorCategoria[categoria] || [];
-    productos.forEach((p, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `${p.imagen} ${p.nombre} — $${p.precio.toFixed(2)}`;
-      selectProd.appendChild(opt);
+  // Si el usuario escribe la cantidad a mano, también se limita entre 1 y el stock
+  document.querySelectorAll(".cantidad-input").forEach((input) => {
+    input.addEventListener("change", () => {
+      input.value = ajustarCantidad(input, 0);
     });
-    selectProd.disabled = false;
-    marcarValido(selectCat);
   });
 
-  selectProd.addEventListener("change", () => {
-    const categoria = selectCat.value;
-    const idx = selectProd.value;
-    if (idx === "" || !categoria) { ocultarPreview(); marcarInvalido(selectProd, "Selecciona un producto."); return; }
-    mostrarPreview(catalogoPorCategoria[categoria][parseInt(idx)]);
-    marcarValido(selectProd);
-  });
+  document.querySelectorAll(".agregar-carrito").forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const card = boton.closest("[data-nombre]");
+      if (!card) return;
 
-  inputCant.addEventListener("input", () => validarNumero(inputCant, 1, 99));
+      const inputCantidad = card.querySelector(".cantidad-input");
+      const cantidad = inputCantidad ? ajustarCantidad(inputCantidad, 0) : 1;
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const categoriaValida = validarSeleccion(selectCat, "Selecciona una categoría.");
-    const productoValido = validarSeleccion(selectProd, "Selecciona un producto.");
-    const cantidadValida = validarNumero(inputCant, 1, 99);
+      const producto = {
+        nombre: card.dataset.nombre,
+        precio: parseFloat(card.dataset.precio),
+        imagen: card.dataset.icono || "💊",
+      };
 
-    if (!(categoriaValida && productoValido && cantidadValida)) {
-      mostrarMensaje("form-mensaje", "⚠️ Completa los campos en rojo.", "danger");
-      return;
-    }
+      agregarAlCarrito(producto, cantidad);
 
-    const producto = catalogoPorCategoria[selectCat.value][parseInt(selectProd.value)];
-    const cantidad = parseInt(inputCant.value);
-
-    for (let i = 0; i < cantidad; i++) agregarAlCarrito(producto);
-    agregarTarjetaSeleccionada(producto, cantidad);
-
-    form.reset();
-    selectProd.innerHTML = '<option value="">-- Primero elige categoría --</option>';
-    selectProd.disabled = true;
-    ocultarPreview();
-    [selectCat, selectProd, inputCant].forEach(limpiarValidacion);
-    mostrarMensaje("form-mensaje", `✅ <strong>${cantidad} × ${producto.nombre}</strong> agregado.`, "success");
-    actualizarContador();
+      if (inputCantidad) inputCantidad.value = 1; // se reinicia para la próxima vez
+    });
   });
 }
 
-function mostrarPreview(producto) {
-  const preview = document.getElementById("preview-producto");
-  if (!preview) return;
-  document.getElementById("preview-icono").textContent = producto.imagen;
-  document.getElementById("preview-nombre-txt").textContent = producto.nombre;
-  document.getElementById("preview-desc-txt").textContent = producto.descripcion;
-  document.getElementById("preview-precio-txt").textContent = `$${producto.precio.toFixed(2)}`;
-  preview.classList.remove("d-none");
+// Lee el valor actual de un input de cantidad, le suma "delta" (0 = solo
+// validar) y lo limita entre 1 y su "max" (el stock disponible del producto).
+function ajustarCantidad(input, delta) {
+  const max = parseInt(input.max, 10) || 99;
+  let valor = (parseInt(input.value, 10) || 1) + delta;
+  if (valor < 1) valor = 1;
+  if (valor > max) valor = max;
+  return valor;
 }
 
-function ocultarPreview() {
-  const preview = document.getElementById("preview-producto");
-  if (preview) preview.classList.add("d-none");
+// ============================================================
+//  MÉTODO DE PAGO (muestra/oculta los campos de tarjeta)
+// ============================================================
+function inicializarMetodoPago() {
+  const select = document.getElementById("carrito-metodo-pago");
+  const camposTarjeta = document.getElementById("campos-tarjeta");
+  if (!select || !camposTarjeta) return;
+
+  const alternar = () => {
+    camposTarjeta.classList.toggle("d-none", select.value !== "Tarjeta");
+  };
+
+  select.addEventListener("change", alternar);
+  alternar(); // estado inicial (por si el modal se reabre con "Efectivo" ya elegido)
 }
 
-function agregarTarjetaSeleccionada(producto, cantidad) {
-  const contenedor = document.getElementById("lista-productos");
-  if (!contenedor) return;
-  totalProductos++;
+// Valida (solo en el navegador) que los campos de tarjeta simulados
+// estén completos y con un formato razonable. Nunca se envían al
+// backend: solo sirven para que el flujo se sienta completo.
+function validarDatosTarjeta() {
+  const numero = document.getElementById("tarjeta-numero")?.value.replace(/\s+/g, "") || "";
+  const vencimiento = document.getElementById("tarjeta-vencimiento")?.value.trim() || "";
+  const cvv = document.getElementById("tarjeta-cvv")?.value.trim() || "";
+  const nombre = document.getElementById("tarjeta-nombre")?.value.trim() || "";
 
-  const col = document.createElement("div");
-  col.classList.add("col-12", "col-sm-6", "col-md-4", "mb-3", "producto-item");
-  col.innerHTML = `
-    <div class="card h-100 border-secondary card-hover bg-dark">
-      <div class="card-body d-flex flex-column">
-        <div class="d-flex justify-content-between mb-2">
-          <span class="fs-4">${producto.imagen}</span>
-          <span class="badge bg-secondary">x${cantidad}</span>
-        </div>
-        <h6 class="text-white mb-1">${producto.nombre}</h6>
-        <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
-          <span class="fw-bold text-brand-yellow">$${(producto.precio * cantidad).toFixed(2)}</span>
-          <button class="btn btn-outline-danger btn-sm btn-eliminar">Quitar</button>
-        </div>
-      </div>
-    </div>`;
-
-  col.querySelector(".btn-eliminar").addEventListener("click", () => {
-    col.remove();
-    totalProductos = Math.max(0, totalProductos - 1);
-    actualizarContador();
-  });
-  contenedor.appendChild(col);
+  if (numero.length < 13 || numero.length > 19 || !/^\d+$/.test(numero)) {
+    return "Ingresa un número de tarjeta válido.";
+  }
+  if (!/^\d{2}\/\d{2}$/.test(vencimiento)) {
+    return "El vencimiento debe tener el formato MM/AA.";
+  }
+  if (!/^\d{3,4}$/.test(cvv)) {
+    return "El CVV debe tener 3 o 4 dígitos.";
+  }
+  if (nombre.length < 3) {
+    return "Ingresa el nombre tal como aparece en la tarjeta.";
+  }
+  return null; // sin errores
 }
 
+// ============================================================
+//  CARRITO DE COMPRAS (real: se guarda en PostgreSQL al confirmar)
+// ============================================================
 function inicializarCarrito() {
   const btnVaciar = document.getElementById("btn-vaciar-carrito");
-  if (btnVaciar) btnVaciar.addEventListener("click", () => { carrito = []; renderizarCarrito(); actualizarBadgeCarrito(); });
+  if (btnVaciar) {
+    btnVaciar.addEventListener("click", () => {
+      carrito = [];
+      guardarCarrito();
+      renderizarCarrito();
+      actualizarBadgeCarrito();
+    });
+  }
 
   const btnConfirmar = document.getElementById("btn-confirmar-pedido");
   if (btnConfirmar) {
-    btnConfirmar.addEventListener("click", () => {
-      if (carrito.length === 0) return;
-      btnConfirmar.disabled = true;
-      document.getElementById("spinner-confirmar").classList.remove("d-none");
-      document.getElementById("texto-confirmar").textContent = " Procesando...";
-
-      setTimeout(() => {
-        carrito.forEach((item) => {
-          pedidosRegistrados.push({
-            id: contadorIdPedido++, cliente: "Cliente Web", producto: item.nombre,
-            cantidad: item.cantidad, total: item.precio * item.cantidad, estado: "Confirmado"
-          });
-        });
-        renderizarTablaPedidos();
-        carrito = []; renderizarCarrito(); actualizarBadgeCarrito();
-        btnConfirmar.disabled = false;
-        document.getElementById("spinner-confirmar").classList.add("d-none");
-        document.getElementById("texto-confirmar").textContent = "Confirmar Pedido";
-        bootstrap.Modal.getInstance(document.getElementById("modalCarrito")).hide();
-      }, 1000);
-    });
+    btnConfirmar.addEventListener("click", () => confirmarPedido(btnConfirmar));
   }
 }
 
-function agregarAlCarrito(producto) {
-  const existente = carrito.find(p => p.nombre === producto.nombre);
-  if (existente) existente.cantidad++; else carrito.push({ ...producto, cantidad: 1 });
+function agregarAlCarrito(producto, cantidad = 1) {
+  const existente = carrito.find((p) => p.nombre === producto.nombre);
+  if (existente) existente.cantidad += cantidad;
+  else carrito.push({ ...producto, cantidad });
+
+  guardarCarrito();
   actualizarBadgeCarrito();
-  mostrarToast(`${producto.imagen} <strong>${producto.nombre}</strong> al carrito`);
+  mostrarToast(`${producto.imagen} <strong>${producto.nombre}</strong> (${cantidad}) al carrito`);
 }
 
 function renderizarCarrito() {
@@ -308,7 +202,9 @@ function renderizarCarrito() {
       <div class="d-flex align-items-center gap-2"><span class="text-brand-yellow fw-bold">$${(item.precio * item.cantidad).toFixed(2)}</span><button class="btn btn-outline-danger btn-sm btn-quitar" data-index="${index}">X</button></div>`;
     fila.querySelector(".btn-quitar").addEventListener("click", () => {
       carrito[index].cantidad > 1 ? carrito[index].cantidad-- : carrito.splice(index, 1);
-      renderizarCarrito(); actualizarBadgeCarrito();
+      guardarCarrito();
+      renderizarCarrito();
+      actualizarBadgeCarrito();
     });
     lista.appendChild(fila);
   });
@@ -321,103 +217,100 @@ function actualizarBadgeCarrito() {
   const totalItems = carrito.reduce((acc, p) => acc + p.cantidad, 0);
   badge.textContent = totalItems;
   badge.style.display = totalItems > 0 ? "inline-block" : "none";
+  renderizarCarrito();
 }
 
-function inicializarPanelPedidos() {
-  const form = document.getElementById("form-pedido");
-  const selectProducto = document.getElementById("pedido-producto");
-  if (!form || !selectProducto) return;
+// Envía el carrito al backend (ruta /carrito/confirmar). Requiere
+// haber iniciado sesión: si no, el backend redirige y aquí detectamos
+// esa redirección para avisarle al usuario que debe loguearse.
+async function confirmarPedido(btnConfirmar) {
+  if (carrito.length === 0) return;
 
-  Object.keys(catalogoPorCategoria).forEach((categoria) => {
-    const grupo = document.createElement("optgroup");
-    grupo.label = categoria;
-    catalogoPorCategoria[categoria].forEach((p) => {
-      const opt = document.createElement("option");
-      opt.value = p.nombre; opt.dataset.precio = p.precio;
-      opt.textContent = `${p.nombre} — $${p.precio.toFixed(2)}`;
-      grupo.appendChild(opt);
-    });
-    selectProducto.appendChild(grupo);
-  });
+  const spinner = document.getElementById("spinner-confirmar");
+  const texto = document.getElementById("texto-confirmar");
+  const metodoPago = document.getElementById("carrito-metodo-pago")?.value || "Efectivo";
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const campoC = document.getElementById("pedido-cliente");
-    const campoCant = document.getElementById("pedido-cantidad");
-    
-    if (!(validarTexto(campoC, 3) && validarSeleccion(selectProducto, "") && validarNumero(campoCant, 1, 99))) return;
-
-    pedidosRegistrados.push({
-      id: contadorIdPedido++, cliente: campoC.value.trim(), producto: selectProducto.value,
-      cantidad: parseInt(campoCant.value), total: parseFloat(selectProducto.options[selectProducto.selectedIndex].dataset.precio) * parseInt(campoCant.value),
-      estado: "Pendiente"
-    });
-    
-    renderizarTablaPedidos();
-    form.reset(); campoCant.value = 1;
-    [campoC, selectProducto, campoCant].forEach(limpiarValidacion);
-  });
-  renderizarTablaPedidos();
-}
-
-function renderizarTablaPedidos() {
-  const tbody = document.getElementById("tabla-pedidos");
-  const aviso = document.getElementById("pedidos-vacio");
-  if (!tbody) return;
-
-  if (pedidosRegistrados.length === 0) {
-    tbody.innerHTML = "";
-    if (aviso) aviso.classList.remove("d-none");
-    document.getElementById("contador-pedidos").textContent = "0";
-    return;
+  // Si el pago es con tarjeta, se validan los datos simulados ANTES de
+  // llamar al backend. El número/vencimiento/CVV nunca se incluyen en
+  // el fetch de abajo: solo se usan para esta validación en pantalla.
+  if (metodoPago === "Tarjeta") {
+    const errorTarjeta = validarDatosTarjeta();
+    if (errorTarjeta) {
+      mostrarMensaje("carrito-mensaje", `⚠️ ${errorTarjeta}`, "warning");
+      return;
+    }
   }
-  
-  if (aviso) aviso.classList.add("d-none");
-  tbody.innerHTML = "";
-  
-  pedidosRegistrados.forEach((pedido, i) => {
-    const claseBadge = pedido.estado === "Confirmado" ? "badge-estado-confirmado" : "badge-estado-pendiente";
-    const tr = document.createElement("tr");
-    tr.className = "fila-pedido";
-    tr.innerHTML = `<td>${i + 1}</td><td>${pedido.cliente}</td><td>${pedido.producto}</td><td>${pedido.cantidad}</td>
-      <td class="text-brand-yellow fw-bold">$${pedido.total.toFixed(2)}</td>
-      <td><span class="badge ${claseBadge}">${pedido.estado}</span></td>
-      <td><button class="btn btn-outline-danger btn-sm">🗑️</button></td>`;
-    tr.querySelector("button").addEventListener("click", () => { pedidosRegistrados.splice(i, 1); renderizarTablaPedidos(); });
-    tbody.appendChild(tr);
-  });
-  document.getElementById("contador-pedidos").textContent = pedidosRegistrados.length;
+
+  btnConfirmar.disabled = true;
+  if (spinner) spinner.classList.remove("d-none");
+  if (texto) texto.textContent = " Procesando...";
+
+  try {
+    const respuesta = await fetch("/carrito/confirmar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken || "",
+      },
+      body: JSON.stringify({
+        items: carrito.map((item) => ({ nombre: item.nombre, cantidad: item.cantidad })),
+        metodo_pago: metodoPago,
+      }),
+    });
+
+    const esJson = respuesta.headers.get("content-type")?.includes("application/json");
+
+    if (respuesta.redirected || !esJson) {
+      mostrarMensaje("carrito-mensaje", "⚠️ Debes iniciar sesión para confirmar tu compra.", "warning");
+      setTimeout(() => { window.location.href = "/login"; }, 1400);
+      return;
+    }
+
+    const data = await respuesta.json();
+
+    if (data.ok) {
+      mostrarMensaje("carrito-mensaje", `✅ ${data.mensaje}`, "success");
+      carrito = [];
+      guardarCarrito();
+      renderizarCarrito();
+      actualizarBadgeCarrito();
+      setTimeout(() => window.location.reload(), 1400);
+    } else {
+      mostrarMensaje("carrito-mensaje", `⚠️ ${data.mensaje}`, "danger");
+    }
+  } catch (error) {
+    mostrarMensaje("carrito-mensaje", "❌ Ocurrió un error al procesar la compra.", "danger");
+  } finally {
+    btnConfirmar.disabled = false;
+    if (spinner) spinner.classList.add("d-none");
+    if (texto) texto.textContent = "Confirmar Pedido";
+  }
 }
 
-function inicializarFormularioContacto() {
-  const f = document.getElementById("form-contacto");
-  if (!f) return;
-  f.addEventListener("submit", (e) => {
-    e.preventDefault();
-    mostrarMensaje("contacto-mensaje", "✅ Mensaje enviado con éxito.", "success");
-    f.reset();
-  });
+// ============================================================
+//  UTILIDADES DE INTERFAZ
+// ============================================================
+function mostrarMensaje(id, texto, tipo) {
+  const contenedor = document.getElementById(id);
+  if (!contenedor) return;
+  contenedor.innerHTML = `<div class="alert alert-${tipo} alert-dismissible fade show mt-2">${texto}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
 }
 
-// VALIDACIONES ORIGINALES
-function marcarValido(e) { e.classList.remove("is-invalid"); e.classList.add("is-valid"); }
-function marcarInvalido(e, m) { e.classList.remove("is-valid"); e.classList.add("is-invalid"); const f = e.parentElement.querySelector(".invalid-feedback"); if (f && m) f.textContent = m; }
-function limpiarValidacion(e) { e.classList.remove("is-valid", "is-invalid"); }
-function validarTexto(e, min) { const v = e.value.trim(); if (v.length < min) { marcarInvalido(e); return false; } marcarValido(e); return true; }
-function validarSeleccion(e) { if (!e.value) { marcarInvalido(e); return false; } marcarValido(e); return true; }
-function validarNumero(e, min, max) { const v = parseInt(e.value); if (isNaN(v) || v < min || v > max) { marcarInvalido(e); return false; } marcarValido(e); return true; }
-
-function actualizarContador() { const el = document.getElementById("contador-productos"); if (el) el.textContent = totalProductos; }
-function mostrarMensaje(id, t, tipo) {
-  const c = document.getElementById(id); if (!c) return;
-  c.innerHTML = `<div class="alert alert-${tipo} alert-dismissible fade show mt-2">${t}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
-}
-function mostrarToast(txt) {
-  let c = document.getElementById("toast-container");
-  if (!c) { c = document.createElement("div"); c.id = "toast-container"; c.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:9999;"; document.body.appendChild(c); }
-  const t = document.createElement("div");
-  t.className = "toast show align-items-center text-dark bg-brand-yellow border-0 mb-2";
-  t.innerHTML = `<div class="d-flex"><div class="toast-body fw-bold">${txt}</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
-  c.appendChild(t);
-  setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 400); }, 3000);
+function mostrarToast(texto) {
+  let contenedor = document.getElementById("toast-container");
+  if (!contenedor) {
+    contenedor = document.createElement("div");
+    contenedor.id = "toast-container";
+    contenedor.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:9999;";
+    document.body.appendChild(contenedor);
+  }
+  const toast = document.createElement("div");
+  toast.className = "toast show align-items-center text-dark bg-brand-yellow border-0 mb-2";
+  toast.innerHTML = `<div class="d-flex"><div class="toast-body fw-bold">${texto}</div><button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  contenedor.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
 }
