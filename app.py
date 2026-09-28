@@ -260,7 +260,15 @@ def productos():
 def clientes():
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    sql = """ SELECT id_cliente, nombre, email FROM clientes """
+    # Cada fila = una consulta (con los datos del cliente que la envió).
+    # LEFT JOIN: también aparecen clientes que aún no han enviado consultas.
+    sql = """
+        SELECT c.id_cliente, c.nombre, c.email,
+               q.tipo_consulta, q.asunto, q.mensaje
+        FROM clientes c
+        LEFT JOIN consultas_clientes q ON q.id_cliente = c.id_cliente
+        ORDER BY q.fecha_envio DESC NULLS LAST, c.id_cliente
+    """
     cursor.execute(sql)
     lista_clientes = cursor.fetchall()
     cursor.close()
@@ -371,7 +379,7 @@ def nuevo_cliente():
             mensaje=form.mensaje.data,
         )
         flash(f"Gracias {form.nombre.data}, hemos recibido tu consulta.", "success")
-        return redirect(url_for("servicios"))
+        return redirect(url_for("index") + "#servicios")
 
     return render_template("formulario_cliente.html", nombre_farmacia=NOMBRE_FARMACIA, form=form)
 

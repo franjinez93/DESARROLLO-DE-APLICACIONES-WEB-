@@ -12,12 +12,11 @@
               Todo para<br>cuidar,<br>prevenir y<br>sanar.
             </h1>
             <p class="lead text-light mb-5 fs-4">
-              {{ nombre_farmacia }}: medicamentos, vitaminas, cuidado personal y equipos
-              para profesionales, pacientes y hogares.
+              Medicamentos, vitaminas, cuidado personal y equipos para profesionales, pacientes y hogares.
             </p>
             <div class="d-flex flex-wrap gap-3">
               <a href="{{ url_for('productos') }}" class="btn btn-brand-yellow btn-lg px-4 py-2 fw-bold">Ver productos</a>
-              <a href="{{ url_for('clientes') }}" class="btn btn-outline-light btn-lg px-4 py-2">Solicitar cotización</a>
+              <a href="#contacto" class="btn btn-outline-light btn-lg px-4 py-2">Solicitar cotización</a>
             </div>
           </div>
         </div>
@@ -25,44 +24,82 @@
     </section>
 
     <div class="container my-5">
-      <!-- RESUMEN QUIÉNES SOMOS (con enlace a página completa) -->
+      <!-- SECCIÓN QUIÉNES SOMOS -->
       <section id="quienes-somos" class="mb-5 pt-4">
         <h2 class="section-title">Quiénes Somos</h2>
         <div class="row align-items-center g-4">
           <div class="col-12 col-md-7">
-            <p class="text-muted lead">
-              {{ nombre_farmacia|upper }} es un establecimiento farmacéutico con más de
-              {{ info.anios_experiencia }} años de experiencia al servicio de la comunidad.
-            </p>
-            <p class="text-muted">
-              Contamos con un equipo de profesionales comprometidos con brindar una atención personalizada,
-              nuestra misión, visión y equipo humano.
-            </p>
-            <a href="{{ url_for('nosotros') }}" class="btn btn-outline-light">Conócenos mejor →</a>
+            <p class="text-muted lead">Farmacia Central es un establecimiento farmacéutico con más de 20 años de experiencia al servicio de la comunidad. Contamos con un equipo de profesionales comprometidos con brindar una atención personalizada.</p>
+            <p class="text-muted">Nuestra farmacia ofrece una amplia variedad de medicamentos genéricos y de marca, productos naturales, suplementos vitamínicos, artículos de cuidado personal y equipos médicos. Nos caracterizamos por mantener precios accesibles y un servicio humano.</p>
           </div>
           <div class="col-12 col-md-5 text-center">
-            <img src="https://img.magnific.com/foto-gratis/farmaceutica-joven-hispana-sonriendo-segura-pie-gesto-brazos-cruzados-farmacia_839833-7087.jpg?semt=ais_hybrid&w=740&q=80" alt="{{ nombre_farmacia }}" class="img-fluid rounded-4 shadow-lg border border-secondary">
+            <img src="https://img.magnific.com/foto-gratis/farmaceutica-joven-hispana-sonriendo-segura-pie-gesto-brazos-cruzados-farmacia_839833-7087.jpg?semt=ais_hybrid&w=740&q=80" alt="Farmacia Central" class="img-fluid rounded-4 shadow-lg border border-secondary">
           </div>
         </div>
       </section>
 
-      <!-- RESUMEN SERVICIOS (generado dinámicamente, con enlace a página completa) -->
+      <!-- SECCIÓN SERVICIOS -->
       <section id="servicios" class="mb-5 pt-4">
-        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-          <h2 class="section-title m-0">Servicios o Productos</h2>
-          <a href="{{ url_for('servicios') }}" class="btn btn-outline-light btn-sm">Ver todos los servicios →</a>
-        </div>
+        <h2 class="section-title">Servicios o Productos</h2>
         <div class="row g-4">
-          {% for servicio in servicios[:3] %}
           <div class="col-12 col-sm-6 col-md-4">
             <div class="card h-100 p-3 card-hover text-center">
               <div class="card-body">
-                <h5 class="card-title text-brand-yellow">{{ servicio.icono }} {{ servicio.nombre }}</h5>
-                <p class="card-text text-muted">{{ servicio.resumen }}</p>
+                <h5 class="card-title text-brand-yellow">💊 Medicamentos</h5>
+                <p class="card-text text-muted">Genéricos y de marca con garantía de calidad y a precios accesibles.</p>
               </div>
             </div>
           </div>
-          {% endfor %}
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">🌿 Naturales</h5>
+                <p class="card-text text-muted">Suplementos vitamínicos y productos naturales para tu bienestar.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">🧴 Cuidado Personal</h5>
+                <p class="card-text text-muted">Artículos de cuidado personal e higiene de las mejores marcas.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">🩺 Equipos Médicos</h5>
+                <p class="card-text text-muted">Tensiómetros, glucómetros y equipos para uso doméstico.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">👨‍⚕️ Atención</h5>
+                <p class="card-text text-muted">Asesoría personalizada de nuestros farmacéuticos certificados.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <div class="card h-100 p-3 card-hover text-center">
+              <div class="card-body">
+                <h5 class="card-title text-brand-yellow">🚚 Domicilio</h5>
+                <p class="card-text text-muted">Entregas a domicilio disponibles en toda la ciudad rápido y seguro.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONSULTAS: cualquier visitante (registrado o no) puede enviar una consulta.
+             Se guarda en PostgreSQL (clientes / consultas_clientes) desde la ruta nuevo_cliente. -->
+        <div class="text-center mt-5" id="consulta-servicios">
+          <h4 class="text-brand-yellow mb-2">¿Tienes alguna consulta?</h4>
+          <p class="text-muted">Escríbenos tus datos y tu consulta; nuestro equipo de {{ nombre_farmacia }} te contactará a la brevedad.</p>
+          <a href="{{ url_for('nuevo_cliente') }}" class="btn btn-brand-yellow fw-bold">
+            <i class="fa-solid fa-paper-plane me-1"></i> Enviar Consulta
+          </a>
         </div>
       </section>
 
@@ -78,17 +115,10 @@
           <aside class="form-dark-panel p-4 rounded-4 h-100 border-start border-4 border-warning">
             <h4 class="text-brand-yellow">Información</h4>
             <ul class="list-unstyled text-muted mt-3">
-              <li class="mb-2"><strong>Promoción:</strong> {{ info.promocion }}</li>
-              <li class="mb-2"><strong>Lunes a Viernes:</strong> {{ info.horario_semana }}</li>
-              <li class="mb-2"><strong>Fines de semana:</strong> {{ info.horario_finde }}</li>
-              <li>
-                <strong>Envío:</strong>
-                {% if info.envio_disponible %}
-                  Disponible en toda la ciudad.
-                {% else %}
-                  No disponible por el momento.
-                {% endif %}
-              </li>
+              <li class="mb-2"><strong>Promoción:</strong> 15% desc. genéricos los martes.</li>
+              <li class="mb-2"><strong>Lunes a Viernes:</strong> 7:00 a 21:00</li>
+              <li class="mb-2"><strong>Fines de semana:</strong> 8:00 a 18:00</li>
+              <li><strong>Envío:</strong> Disponible en toda la ciudad.</li>
             </ul>
           </aside>
         </div>
@@ -96,5 +126,20 @@
           <iframe class="rounded-4 w-100 shadow" height="315" src="https://www.youtube.com/embed/d1Up8I-0vzI?si=Zuj4SDmWYhfrTKak" frameborder="0" allowfullscreen></iframe>
         </div>
       </div>
+
+      <!-- SECCIÓN CONTACTO (datos de la farmacia; las consultas se envían desde Servicios) -->
+      <section id="contacto" class="mb-5 pt-4">
+        <h2 class="section-title">Contacto</h2>
+        <div class="form-dark-panel p-4 rounded-4">
+          <p class="text-muted mb-3"><i class="fa-solid fa-envelope text-brand-yellow me-2"></i> contacto@farmaciacentral.com</p>
+          <p class="text-muted mb-3"><i class="fa-solid fa-phone text-brand-yellow me-2"></i> +593 98 373 7588</p>
+          <p class="text-muted mb-4"><i class="fa-solid fa-location-dot text-brand-yellow me-2"></i> Av. 10 de Agosto 456, Quito, Ecuador</p>
+          <div class="d-flex gap-2">
+            <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="btn btn-outline-light btn-sm"><i class="fa-brands fa-twitter"></i></a>
+          </div>
+        </div>
+      </section>
     </div>
 {% endblock %}
