@@ -17,11 +17,6 @@
         <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('productos') }}">Productos</a></li>
 
         {% if current_user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link text-white" href="{{ url_for('dashboard') }}">
-              <i class="fa-solid fa-gauge me-1"></i>Panel
-            </a>
-          </li>
           <!-- "Comprar" abre directamente el carrito real (mismo modal que el
                ícono flotante junto al de WhatsApp): ahí ves solo los productos
                que agregaste, para proceder al pago. Ya no navega a /productos
@@ -46,6 +41,11 @@
               <i class="fa-solid fa-user-check"></i> Hola, {{ current_user.nombre }}
             </a>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('dashboard') }}">
+                  <i class="fa-solid fa-gauge me-1"></i> Mi Panel
+                </a>
+              </li>
               <li><span class="dropdown-item-text small text-muted">Rol: {{ current_user.rol|capitalize }}</span></li>
               <li><hr class="dropdown-divider"></li>
               <li>
