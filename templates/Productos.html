@@ -4,7 +4,6 @@
 
 {% block content %}
     <div class="container my-5" style="padding-top: 100px;">
-      <!-- SECCIÓN TIENDA ONLINE (100% datos reales desde PostgreSQL) -->
       <section id="tienda-online" class="mb-5 pt-4">
         <h2 class="section-title">🛒 Tienda Online</h2>
         <p class="text-muted">Explora nuestros productos disponibles y agrégalos a tu carrito.</p>
@@ -18,7 +17,6 @@
           {% endif %}
         </div>
 
-        <!-- Catálogo generado dinámicamente desde PostgreSQL con Jinja2 (for + if/else) -->
         <div class="row g-4" id="catalogo-dinamico">
           {% for producto in productos %}
           <div class="col-12 col-sm-6 col-md-4">
@@ -38,7 +36,6 @@
                 {% if producto.stock > 0 %}
                   <span class="badge bg-success mb-2">✔ Disponible ({{ producto.stock }})</span>
 
-                  <!-- Selector de cantidad: limitado entre 1 y el stock disponible -->
                   <div class="input-group input-group-sm mb-2 mx-auto" style="max-width: 130px;">
                     <button type="button" class="btn btn-outline-light btn-restar-cantidad" aria-label="Disminuir cantidad">−</button>
                     <input type="number" class="form-control text-center bg-dark text-white cantidad-input"
@@ -47,11 +44,29 @@
                     <button type="button" class="btn btn-outline-light btn-sumar-cantidad" aria-label="Aumentar cantidad">+</button>
                   </div>
 
-                  <button type="button" class="btn btn-outline-light btn-sm agregar-carrito mt-auto">
+                  <button type="button" class="btn btn-outline-light btn-sm agregar-carrito">
                     <i class="fa-solid fa-cart-plus me-1"></i> Agregar al carrito
                   </button>
                 {% else %}
-                  <span class="badge bg-danger mt-auto">✘ Agotado</span>
+                  <span class="badge bg-danger">✘ Agotado</span>
+                {% endif %}
+
+                {# ===== BOTONES SOLO ADMIN: EDITAR / ELIMINAR ===== #}
+                {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+                <div class="d-flex gap-2 mt-3">
+                  <a href="{{ url_for('editar_producto', id_producto=producto.id_producto) }}"
+                     class="btn btn-outline-warning btn-sm flex-fill">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                  </a>
+                  <button type="button"
+                          class="btn btn-outline-danger btn-sm flex-fill btn-eliminar-producto"
+                          data-id="{{ producto.id_producto }}"
+                          data-nombre="{{ producto.nombre }}"
+                          data-bs-toggle="modal"
+                          data-bs-target="#modalEliminarProducto">
+                    <i class="fa-solid fa-trash me-1"></i> Eliminar
+                  </button>
+                </div>
                 {% endif %}
               </div>
             </div>
@@ -66,4 +81,48 @@
         </div>
       </section>
     </div>
+
+    {# ===== MODAL DE CONFIRMACIÓN PARA ELIMINAR PRODUCTO ===== #}
+    {% if current_user.is_authenticated and current_user.rol == 'admin' %}
+    <div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-danger">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title text-danger">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmar eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas eliminar el producto
+            <strong id="nombre-producto-eliminar" class="text-brand-yellow"></strong>?
+            <p class="small text-muted mt-2 mb-0">Esta acción no se puede deshacer.</p>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+            <form id="form-eliminar-producto" method="POST" action="">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".btn-eliminar-producto").forEach((boton) => {
+          boton.addEventListener("click", () => {
+            const id = boton.dataset.id;
+            const nombre = boton.dataset.nombre;
+            document.getElementById("nombre-producto-eliminar").textContent = nombre;
+            document.getElementById("form-eliminar-producto").action =
+              `/productos/eliminar/${id}`;
+          });
+        });
+      });
+    </script>
+    {% endif %}
 {% endblock %}

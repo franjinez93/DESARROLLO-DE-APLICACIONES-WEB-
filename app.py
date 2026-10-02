@@ -12,6 +12,9 @@ from werkzeug.security import check_password_hash
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
+# Cargar variables de entorno ANTES de usarlas
+load_dotenv()
+
 from models import Usuario
 from forms.producto_form import ProductoForm
 from forms.cliente_form import ClienteForm
@@ -23,26 +26,23 @@ from conexion.conexion import obtener_conexion
 
 import database
 
-load_dotenv()
-
 app = Flask(__name__)
 
 # =========================================================
 #  CONFIGURACIÓN DE SEGURIDAD
-#  (SECRET_KEY y credenciales de BD viven en .env, no en el código)
 # =========================================================
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "clave-secreta-farmacia-central-2026")
+app.config["WTF_CSRF_TIME_LIMIT"] = None
 
-# Protección CSRF global (necesaria también para el fetch del carrito)
 csrf = CSRFProtect(app)
 
 # =========================================================
-#  PERSISTENCIA DE DATOS (Semana 12/13)
+#  PERSISTENCIA DE DATOS
 # =========================================================
 database.init_db()
 
 # =========================================================
-#  LOGIN / SESIONES (Flask-Login) - Semana 14
+#  LOGIN / SESIONES (Flask-Login)
 # =========================================================
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -73,9 +73,8 @@ def admin_required(vista):
 
 
 # =========================================================
-#  DATOS ESTÁTICOS (no requieren persistencia)
+#  DATOS ESTÁTICOS (para la página pública)
 # =========================================================
-
 NOMBRE_FARMACIA = "Farmacia Central"
 
 INFO_FARMACIA = {
@@ -134,7 +133,7 @@ def calcular_resumen_facturacion(pedidos):
     total_pedidos = len(pedidos)
     total_facturado = sum(float(p["total"]) for p in pedidos if p["total"])
     pendientes = sum(1 for p in pedidos if p["estado"] == "Pendiente")
-    entregados = sum(1 for p in pedidos if p["estado"] == "Completado" or p["estado"] == "Entregado")
+    entregados = sum(1 for p in pedidos if p["estado"] in ("Completado", "Entregado"))
     cancelados = sum(1 for p in pedidos if p["estado"] == "Cancelado")
     return {
         "total_pedidos": total_pedidos,
@@ -146,9 +145,8 @@ def calcular_resumen_facturacion(pedidos):
 
 
 # =========================================================
-#  RUTAS DE AUTENTICACIÓN (login / registro / logout)
+#  RUTAS DE AUTENTICACIÓN
 # =========================================================
-
 @app.route("/registro", methods=["GET", "POST"])
 def registro():
     if current_user.is_authenticated:
@@ -160,7 +158,6 @@ def registro():
         if existente:
             flash("Ya existe una cuenta registrada con ese correo.", "danger")
         else:
-            # rol="cliente" siempre: nadie puede auto-asignarse "admin" desde aquí.
             database.crear_usuario(form.nombre.data, form.email.data, form.password.data, rol="cliente")
             flash(f"Cuenta creada correctamente, {form.nombre.data}. Ahora puedes iniciar sesión.", "success")
             return redirect(url_for("login"))
@@ -198,37 +195,35 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    """Panel post-login: accesos rápidos según el rol del usuario."""
     return render_template("dashboard.html", nombre_farmacia=NOMBRE_FARMACIA)
 
 
 # =========================================================
-#  RUTAS DE VISUALIZACIÓN
+#  RUTAS DE VISUALIZACIÓN PÚBLICA
 # =========================================================
-
 @app.route("/")
 def index():
     return render_template("index.html", nombre_farmacia=NOMBRE_FARMACIA, info=INFO_FARMACIA, servicios=SERVICIOS)
 
+
 @app.route("/nosotros")
 def nosotros():
-    return render_template("nosotros.html", nombre_farmacia=NOMBRE_FARMACIA, info=INFO_FARMACIA, mision=MISION, vision=VISION, valores=VALORES, equipo=EQUIPO)
+    return render_template("nosotros.html", nombre_farmacia=NOMBRE_FARMACIA, info=INFO_FARMACIA,
+                           mision=MISION, vision=VISION, valores=VALORES, equipo=EQUIPO)
+
 
 @app.route("/servicios")
 def servicios():
     return render_template("servicios.html", nombre_farmacia=NOMBRE_FARMACIA, servicios=SERVICIOS)
 
 
-@app.route('/productos')
+# =========================================================
+#  MÓDULO PRODUCTOS — CRUD COMPLETO (Semana 13 y 15)
+# =========================================================
+@app.route("/productos")
+@login_required
 def productos():
-    """
-    Catálogo de productos: PÚBLICO. Cualquier visitante (con o sin
-    cuenta) puede ver el catálogo y agregar productos a su carrito
-    (el carrito vive en el navegador, en script.js). El login solo se
-    exige más adelante, al confirmar el pedido (ver /carrito/confirmar
-    y /comprar, ambas con @login_required): ahí es donde Flask-Login
-    redirige automáticamente a /login si no has iniciado sesión.
-    """
+    """LISTAR productos (SELECT con JOIN a categorías)."""
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     sql = """
@@ -243,94 +238,13 @@ def productos():
     cursor.close()
     conexion.close()
 
-    return render_template(
-        'Productos.html',
-        nombre_farmacia=NOMBRE_FARMACIA,
-        productos=lista_productos
-    )
+    return render_template("Productos.html", nombre_farmacia=NOMBRE_FARMACIA, productos=lista_productos)
 
-
-# =========================================================
-#  RUTAS SOLO PARA ADMINISTRADOR
-#  (Clientes, Proveedores, Facturación)
-# =========================================================
-
-@app.route("/clientes")
-@admin_required
-def clientes():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    # Cada fila = una consulta (con los datos del cliente que la envió).
-    # LEFT JOIN: también aparecen clientes que aún no han enviado consultas.
-    sql = """
-        SELECT c.id_cliente, c.nombre, c.email,
-               q.tipo_consulta, q.asunto, q.mensaje
-        FROM clientes c
-        LEFT JOIN consultas_clientes q ON q.id_cliente = c.id_cliente
-        ORDER BY q.fecha_envio DESC NULLS LAST, c.id_cliente
-    """
-    cursor.execute(sql)
-    lista_clientes = cursor.fetchall()
-    cursor.close()
-    conexion.close()
-
-    return render_template(
-        "Clientes.html",
-        nombre_farmacia=NOMBRE_FARMACIA,
-        clientes=lista_clientes,
-    )
-
-
-@app.route("/proveedores")
-@admin_required
-def proveedores():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    sql = """ SELECT id_proveedor, nombre, telefono, email FROM proveedores """
-    cursor.execute(sql)
-    lista_proveedores = cursor.fetchall()
-    cursor.close()
-    conexion.close()
-
-    return render_template(
-        "Proveedores.html",
-        nombre_farmacia=NOMBRE_FARMACIA,
-        proveedores=lista_proveedores,
-    )
-
-
-@app.route("/facturacion")
-@admin_required
-def facturacion():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    sql = """
-        SELECT p.id_pedido, c.nombre as cliente, p.fecha, p.estado, p.metodo_pago, p.total
-        FROM pedidos p
-        JOIN clientes c ON p.id_cliente = c.id_cliente
-        ORDER BY p.id_pedido DESC
-    """
-    cursor.execute(sql)
-    lista_pedidos = cursor.fetchall()
-    cursor.close()
-    conexion.close()
-
-    resumen = calcular_resumen_facturacion(lista_pedidos)
-    return render_template(
-        "Facturacion.html",
-        nombre_farmacia=NOMBRE_FARMACIA,
-        pedidos=lista_pedidos,
-        resumen=resumen,
-    )
-
-
-# =========================================================
-#  RUTAS DE FORMULARIOS (inserciones - solo admin)
-# =========================================================
 
 @app.route("/productos/nuevo", methods=["GET", "POST"])
 @admin_required
 def nuevo_producto():
+    """CREAR producto (INSERT)."""
     form = ProductoForm()
     if form.validate_on_submit():
         database.insertar_producto(
@@ -351,25 +265,80 @@ def nuevo_producto():
         form=form,
     )
 
+
+@app.route("/productos/editar/<int:id_producto>", methods=["GET", "POST"])
+@admin_required
+def editar_producto(id_producto):
+    """ACTUALIZAR producto (UPDATE)."""
+    producto = database.obtener_producto_por_id(id_producto)
+    if not producto:
+        flash("Producto no encontrado.", "danger")
+        return redirect(url_for("productos"))
+
+    form = ProductoForm(data=producto)
+
+    if form.validate_on_submit():
+        database.actualizar_producto(
+            id_producto=id_producto,
+            nombre=form.nombre.data,
+            categoria=form.categoria.data,
+            descripcion=form.descripcion.data,
+            precio=float(form.precio.data),
+            stock=form.stock.data,
+        )
+        flash(f"Producto '{form.nombre.data}' actualizado correctamente.", "success")
+        return redirect(url_for("productos"))
+
+    return render_template(
+        "formulario_producto.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        titulo_formulario="Editar Producto",
+        form=form,
+        producto=producto,
+    )
+
+
+@app.route("/productos/eliminar/<int:id_producto>", methods=["POST"])
+@admin_required
+def eliminar_producto(id_producto):
+    """ELIMINAR producto (DELETE)."""
+    exito = database.eliminar_producto(id_producto)
+    if exito:
+        flash("Producto eliminado correctamente.", "success")
+    else:
+        flash("No se pudo eliminar el producto (puede tener pedidos asociados).", "danger")
+    return redirect(url_for("productos"))
+
+
+# =========================================================
+#  MÓDULO CLIENTES — CRUD COMPLETO
+# =========================================================
+@app.route("/clientes")
+@admin_required
+def clientes():
+    """LISTAR clientes con sus consultas (LEFT JOIN)."""
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    sql = """
+        SELECT c.id_cliente, c.nombre, c.email,
+               co.tipo_consulta, co.asunto, co.mensaje
+        FROM clientes c
+        LEFT JOIN consultas_clientes co ON c.id_cliente = co.id_cliente
+        ORDER BY c.id_cliente DESC
+    """
+    cursor.execute(sql)
+    lista_clientes = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    return render_template("Clientes.html", nombre_farmacia=NOMBRE_FARMACIA, clientes=lista_clientes)
+
+
 @app.route("/clientes/nuevo", methods=["GET", "POST"])
+@admin_required
 def nuevo_cliente():
-    """
-    Formulario "Enviar Consulta". Ya NO es una ruta de administrador:
-    conceptualmente pertenece a la página de Servicios (enlázala desde
-    ahí, no desde el panel de administración de Clientes) y puede
-    usarla cualquier visitante, esté o no registrado. Los datos se
-    guardan siempre en PostgreSQL (tablas 'clientes' y
-    'consultas_clientes'), sin importar quién la envíe.
-    """
+    """CREAR cliente (INSERT)."""
     form = ClienteForm()
-
-    # Si ya inició sesión, le precargamos nombre/email para que no los
-    # vuelva a escribir (pero puede editarlos si quiere enviar la
-    # consulta a nombre de otra persona).
-    if current_user.is_authenticated and request.method == "GET":
-        form.nombre.data = current_user.nombre
-        form.email.data = current_user.email
-
     if form.validate_on_submit():
         database.insertar_cliente(
             nombre=form.nombre.data,
@@ -378,14 +347,81 @@ def nuevo_cliente():
             asunto=form.asunto.data,
             mensaje=form.mensaje.data,
         )
-        flash(f"Gracias {form.nombre.data}, hemos recibido tu consulta.", "success")
-        return redirect(url_for("index") + "#servicios")
+        flash(f"Cliente '{form.nombre.data}' registrado correctamente.", "success")
+        return redirect(url_for("clientes"))
 
     return render_template("formulario_cliente.html", nombre_farmacia=NOMBRE_FARMACIA, form=form)
+
+
+@app.route("/clientes/editar/<int:id_cliente>", methods=["GET", "POST"])
+@admin_required
+def editar_cliente(id_cliente):
+    """ACTUALIZAR cliente (UPDATE)."""
+    cliente = database.obtener_cliente_por_id(id_cliente)
+    if not cliente:
+        flash("Cliente no encontrado.", "danger")
+        return redirect(url_for("clientes"))
+
+    form = ClienteForm(data=cliente)
+
+    # Rellenar valores por defecto si vienen vacíos
+    if not form.tipo_consulta.data:
+        form.tipo_consulta.data = "General"
+    if not form.asunto.data:
+        form.asunto.data = "Actualización de datos"
+    if not form.mensaje.data:
+        form.mensaje.data = "Actualización de datos del cliente."
+
+    if form.validate_on_submit():
+        database.actualizar_cliente(
+            id_cliente=id_cliente,
+            nombre=form.nombre.data,
+            email=form.email.data,
+        )
+        flash(f"Cliente '{form.nombre.data}' actualizado correctamente.", "success")
+        return redirect(url_for("clientes"))
+
+    return render_template(
+        "formulario_cliente.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        form=form,
+        cliente=cliente,
+    )
+
+
+@app.route("/clientes/eliminar/<int:id_cliente>", methods=["POST"])
+@admin_required
+def eliminar_cliente(id_cliente):
+    """ELIMINAR cliente (DELETE)."""
+    exito = database.eliminar_cliente(id_cliente)
+    if exito:
+        flash("Cliente eliminado correctamente.", "success")
+    else:
+        flash("No se pudo eliminar el cliente.", "danger")
+    return redirect(url_for("clientes"))
+
+
+# =========================================================
+#  MÓDULO PROVEEDORES — CRUD COMPLETO
+# =========================================================
+@app.route("/proveedores")
+@admin_required
+def proveedores():
+    """LISTAR proveedores."""
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT id_proveedor, nombre, telefono, email FROM proveedores ORDER BY id_proveedor DESC")
+    lista_proveedores = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    return render_template("Proveedores.html", nombre_farmacia=NOMBRE_FARMACIA, proveedores=lista_proveedores)
+
 
 @app.route("/proveedores/nuevo", methods=["GET", "POST"])
 @admin_required
 def nuevo_proveedor():
+    """CREAR proveedor (INSERT)."""
     form = ProveedorForm()
     if form.validate_on_submit():
         database.insertar_proveedor(
@@ -399,10 +435,80 @@ def nuevo_proveedor():
 
     return render_template("formulario_proveedor.html", nombre_farmacia=NOMBRE_FARMACIA, form=form)
 
+
+@app.route("/proveedores/editar/<int:id_proveedor>", methods=["GET", "POST"])
+@admin_required
+def editar_proveedor(id_proveedor):
+    """ACTUALIZAR proveedor (UPDATE)."""
+    proveedor = database.obtener_proveedor_por_id(id_proveedor)
+    if not proveedor:
+        flash("Proveedor no encontrado.", "danger")
+        return redirect(url_for("proveedores"))
+
+    form = ProveedorForm(data=proveedor)
+
+    if form.validate_on_submit():
+        database.actualizar_proveedor(
+            id_proveedor=id_proveedor,
+            nombre=form.nombre.data,
+            telefono=form.telefono.data,
+            email=form.email.data,
+        )
+        flash(f"Proveedor '{form.nombre.data}' actualizado correctamente.", "success")
+        return redirect(url_for("proveedores"))
+
+    return render_template(
+        "formulario_proveedor.html",
+        nombre_farmacia=NOMBRE_FARMACIA,
+        form=form,
+        proveedor=proveedor,
+    )
+
+
+@app.route("/proveedores/eliminar/<int:id_proveedor>", methods=["POST"])
+@admin_required
+def eliminar_proveedor(id_proveedor):
+    """ELIMINAR proveedor (DELETE)."""
+    exito = database.eliminar_proveedor(id_proveedor)
+    if exito:
+        flash("Proveedor eliminado correctamente.", "success")
+    else:
+        flash("No se pudo eliminar el proveedor.", "danger")
+    return redirect(url_for("proveedores"))
+
+
+# =========================================================
+#  MÓDULO FACTURACIÓN (solo admin)
+# =========================================================
+@app.route("/facturacion")
+@admin_required
+def facturacion():
+    """LISTAR pedidos con JOIN a clientes, productos y detalle."""
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    sql = """
+        SELECT p.id_pedido, c.nombre AS cliente, pr.nombre AS producto,
+               dp.cantidad, p.fecha, p.estado, p.metodo_pago, p.total
+        FROM pedidos p
+        JOIN clientes c ON p.id_cliente = c.id_cliente
+        LEFT JOIN detalle_pedidos dp ON p.id_pedido = dp.id_pedido
+        LEFT JOIN productos pr ON dp.id_producto = pr.id_producto
+        ORDER BY p.id_pedido DESC
+    """
+    cursor.execute(sql)
+    lista_pedidos = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    resumen = calcular_resumen_facturacion(lista_pedidos)
+    return render_template("Facturacion.html", nombre_farmacia=NOMBRE_FARMACIA,
+                           pedidos=lista_pedidos, resumen=resumen)
+
+
 @app.route("/facturacion/nuevo", methods=["GET", "POST"])
 @admin_required
 def nuevo_pedido():
-    """Registro MANUAL de pedidos (herramienta administrativa)."""
+    """Registro MANUAL de pedidos (INSERT)."""
     form = PedidoForm()
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
@@ -414,9 +520,7 @@ def nuevo_pedido():
     form.producto.choices = [(p["nombre"], p["nombre"]) for p in productos_bd]
 
     if form.validate_on_submit():
-        producto_info = next(
-            (p for p in productos_bd if p["nombre"] == form.producto.data), None
-        )
+        producto_info = next((p for p in productos_bd if p["nombre"] == form.producto.data), None)
         precio_unitario = float(producto_info["precio"]) if producto_info else 0
         total = round(precio_unitario * form.cantidad.data, 2)
 
@@ -436,13 +540,12 @@ def nuevo_pedido():
 
 
 # =========================================================
-#  COMPRA (usuarios normales autenticados)
+#  COMPRA (usuarios autenticados)
 # =========================================================
-
 @app.route("/comprar", methods=["GET", "POST"])
 @login_required
 def comprar():
-    """Compra de UN producto a la vez, vía formulario tradicional (Flask-WTF)."""
+    """Compra de un solo producto (formulario tradicional)."""
     form = CompraForm()
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
@@ -454,9 +557,7 @@ def comprar():
     form.producto.choices = [(p["nombre"], p["nombre"]) for p in productos_bd]
 
     if form.validate_on_submit():
-        producto_info = next(
-            (p for p in productos_bd if p["nombre"] == form.producto.data), None
-        )
+        producto_info = next((p for p in productos_bd if p["nombre"] == form.producto.data), None)
         precio_unitario = float(producto_info["precio"]) if producto_info else 0
         total = round(precio_unitario * form.cantidad.data, 2)
 
@@ -479,12 +580,7 @@ def comprar():
 @app.route("/carrito/confirmar", methods=["POST"])
 @login_required
 def confirmar_carrito():
-    """
-    Recibe el carrito (JSON) armado en el frontend con productos REALES
-    de la base de datos y registra un pedido por cada ítem, asociado al
-    usuario autenticado (current_user). Protegida por CSRF (ver
-    meta[name=csrf-token] en base.html y el header X-CSRFToken en script.js).
-    """
+    """Recibe el carrito (JSON) y registra un pedido por cada ítem."""
     datos = request.get_json(silent=True) or {}
     items = datos.get("items", [])
     metodo_pago = datos.get("metodo_pago", "Efectivo")

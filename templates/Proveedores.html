@@ -6,7 +6,7 @@
     <div class="container my-5" style="padding-top: 100px;">
       <section id="proveedores" class="mb-5 pt-4">
         <h2 class="section-title">Proveedores</h2>
-        <p class="text-muted">Registra o consulta los proveedores que abastecen a {{ nombre_farmacia }}.</p>
+        <p class="text-muted">Administra los proveedores de {{ nombre_farmacia }}.</p>
 
         <div class="mb-4">
           <a href="{{ url_for('nuevo_proveedor') }}" class="btn btn-brand-yellow fw-bold">
@@ -14,7 +14,6 @@
           </a>
         </div>
 
-        <!-- LISTADO DE PROVEEDORES GENERADO CON JINJA2 (if / for) DESDE SQLite -->
         <div class="mt-4">
           <h5 class="text-brand-yellow mb-3">Proveedores Registrados
             <span class="badge bg-brand-yellow text-dark">{{ proveedores|length }}</span>
@@ -27,19 +26,32 @@
                 <tr>
                   <th>#</th>
                   <th>Nombre / Empresa</th>
-                  <th>Producto</th>
                   <th>Teléfono</th>
                   <th>Email</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody id="tabla-proveedores">
+              <tbody>
                 {% for proveedor in proveedores %}
                 <tr>
                   <td>{{ loop.index }}</td>
                   <td>{{ proveedor.nombre }}</td>
-                  <td>{{ proveedor.producto|capitalize }}</td>
-                  <td>{{ proveedor.telefono if proveedor.telefono else "—" }}</td>
-                  <td>{{ proveedor.email if proveedor.email else "—" }}</td>
+                  <td>{{ proveedor.telefono or "—" }}</td>
+                  <td>{{ proveedor.email or "—" }}</td>
+                  <td>
+                    <a href="{{ url_for('editar_proveedor', id_proveedor=proveedor.id_proveedor) }}"
+                       class="btn btn-outline-warning btn-sm">
+                      <i class="fa-solid fa-pen-to-square"></i> Editar
+                    </a>
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm btn-eliminar-proveedor"
+                            data-id="{{ proveedor.id_proveedor }}"
+                            data-nombre="{{ proveedor.nombre }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarProveedor">
+                      <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -47,10 +59,49 @@
           </div>
           {% else %}
           <div class="alert bg-dark border-secondary text-center text-muted">
-            📭 Aún no hay proveedores registrados. Usa el botón "Registrar Proveedor" para agregar el primero.
+            📭 Aún no hay proveedores registrados.
           </div>
           {% endif %}
         </div>
       </section>
     </div>
+
+    <div class="modal fade" id="modalEliminarProveedor" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-danger">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title text-danger">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmar eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas eliminar al proveedor
+            <strong id="nombre-proveedor-eliminar" class="text-brand-yellow"></strong>?
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+            <form id="form-eliminar-proveedor" method="POST" action="">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".btn-eliminar-proveedor").forEach((boton) => {
+          boton.addEventListener("click", () => {
+            const id = boton.dataset.id;
+            const nombre = boton.dataset.nombre;
+            document.getElementById("nombre-proveedor-eliminar").textContent = nombre;
+            document.getElementById("form-eliminar-proveedor").action = `/proveedores/eliminar/${id}`;
+          });
+        });
+      });
+    </script>
 {% endblock %}

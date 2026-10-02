@@ -2,3 +2,4 @@
 # separadas por módulo: productos, clientes, proveedores y facturación.
 # Cada formulario hereda de FlaskForm (Flask-WTF) y define sus propios
 # campos y validadores mediante WTForms.
+# Paquete forms

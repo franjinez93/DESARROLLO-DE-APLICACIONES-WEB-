@@ -4,14 +4,18 @@
 
 {% block content %}
     <div class="container my-5" style="padding-top: 100px;">
-      <!-- SECCIÓN CLIENTES / CONTACTO -->
       <section id="contacto" class="mb-5 pt-4">
         <h2 class="section-title">Clientes</h2>
-        <p class="text-muted">Clientes y consultas recibidas desde la página de Servicios.</p>
+        <p class="text-muted">Clientes y consultas recibidas.</p>
 
-        <!-- LISTADO DE CONSULTAS REGISTRADAS (PostgreSQL) -->
-        <div class="mt-5">
-          <h5 class="text-brand-yellow mb-3">Consultas Registradas
+        <div class="mb-4">
+          <a href="{{ url_for('nuevo_cliente') }}" class="btn btn-brand-yellow fw-bold">
+            <i class="fa-solid fa-plus me-1"></i> Registrar Cliente
+          </a>
+        </div>
+
+        <div class="mt-4">
+          <h5 class="text-brand-yellow mb-3">Clientes Registrados
             <span class="badge bg-brand-yellow text-dark">{{ clientes|length }}</span>
           </h5>
 
@@ -23,9 +27,10 @@
                   <th>#</th>
                   <th>Nombre</th>
                   <th>Email</th>
-                  <th>Tipo de Consulta</th>
+                  <th>Tipo Consulta</th>
                   <th>Asunto</th>
                   <th>Mensaje</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -34,9 +39,23 @@
                   <td>{{ loop.index }}</td>
                   <td>{{ cliente.nombre }}</td>
                   <td>{{ cliente.email }}</td>
-                  <td>{{ cliente.tipo_consulta }}</td>
-                  <td>{{ cliente.asunto }}</td>
-                  <td>{{ cliente.mensaje }}</td>
+                  <td>{{ cliente.tipo_consulta or "—" }}</td>
+                  <td>{{ cliente.asunto or "—" }}</td>
+                  <td>{{ cliente.mensaje or "—" }}</td>
+                  <td>
+                    <a href="{{ url_for('editar_cliente', id_cliente=cliente.id_cliente) }}"
+                       class="btn btn-outline-warning btn-sm">
+                      <i class="fa-solid fa-pen-to-square"></i> Editar
+                    </a>
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm btn-eliminar-cliente"
+                            data-id="{{ cliente.id_cliente }}"
+                            data-nombre="{{ cliente.nombre }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEliminarCliente">
+                      <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -44,10 +63,51 @@
           </div>
           {% else %}
           <div class="alert bg-dark border-secondary text-center text-muted">
-            📭 Aún no hay consultas registradas.
+            📭 Aún no hay clientes registrados.
           </div>
           {% endif %}
         </div>
       </section>
     </div>
+
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div class="modal fade" id="modalEliminarCliente" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-danger">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title text-danger">
+              <i class="fa-solid fa-triangle-exclamation me-1"></i> Confirmar eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            ¿Seguro que deseas eliminar al cliente
+            <strong id="nombre-cliente-eliminar" class="text-brand-yellow"></strong>?
+            <p class="small text-muted mt-2 mb-0">También se eliminarán sus consultas asociadas.</p>
+          </div>
+          <div class="modal-footer border-secondary">
+            <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancelar</button>
+            <form id="form-eliminar-cliente" method="POST" action="">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".btn-eliminar-cliente").forEach((boton) => {
+          boton.addEventListener("click", () => {
+            const id = boton.dataset.id;
+            const nombre = boton.dataset.nombre;
+            document.getElementById("nombre-cliente-eliminar").textContent = nombre;
+            document.getElementById("form-eliminar-cliente").action = `/clientes/eliminar/${id}`;
+          });
+        });
+      });
+    </script>
 {% endblock %}

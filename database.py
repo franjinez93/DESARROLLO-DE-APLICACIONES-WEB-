@@ -1,12 +1,6 @@
 """
 database.py
 Funciones de acceso a datos contra PostgreSQL (base 'farmacia_central').
-
-Reemplaza cualquier versión anterior basada en SQLite. El esquema
-(categorias, proveedores, clientes, productos, consultas_clientes,
-pedidos, detalle_pedidos, usuarios) debe existir ya en pgAdmin4 --
-créalo corriendo tus scripts .sql desde el Query Tool antes de usar
-esta app (ver sql/crear_tabla_usuarios.sql para la tabla nueva).
 """
 
 from psycopg2.extras import RealDictCursor
@@ -15,11 +9,7 @@ from conexion.conexion import obtener_conexion
 
 
 def init_db():
-    """
-    El esquema ya vive en PostgreSQL (creado desde pgAdmin4), así que
-    aquí solo verificamos que la conexión funcione. Se conserva la
-    función para no romper el 'database.init_db()' que llama app.py.
-    """
+    """Verifica que la conexión a PostgreSQL funcione."""
     try:
         conexion = obtener_conexion()
         conexion.close()
@@ -29,11 +19,9 @@ def init_db():
 
 
 # =========================================================
-#  USUARIOS  (login, registro, contraseñas encriptadas)
+#  USUARIOS
 # =========================================================
-
 def obtener_usuario_por_email(email):
-    """Devuelve la fila del usuario (con password_hash) o None si no existe."""
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -48,7 +36,6 @@ def obtener_usuario_por_email(email):
 
 
 def obtener_usuario_por_id(id_usuario):
-    """Devuelve la fila del usuario por id (usada por Flask-Login para recargar la sesión)."""
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -63,14 +50,7 @@ def obtener_usuario_por_id(id_usuario):
 
 
 def crear_usuario(nombre, email, password_plano, rol="cliente"):
-    """
-    Crea un usuario nuevo. La contraseña NUNCA se guarda en texto plano:
-    se convierte a un hash irreversible (Werkzeug/scrypt) antes del INSERT.
-    Por defecto el rol es 'cliente'; el rol 'admin' se asigna manualmente
-    (ver crear_admin.py), nunca desde el formulario público de registro.
-    """
     password_hash = generate_password_hash(password_plano)
-
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -91,11 +71,9 @@ def crear_usuario(nombre, email, password_plano, rol="cliente"):
 
 
 # =========================================================
-#  PRODUCTOS
+#  PRODUCTOS - CRUD COMPLETO
 # =========================================================
-
 def _obtener_o_crear_categoria(cursor, nombre_categoria):
-    """Devuelve id_categoria; si la categoría no existe, la crea."""
     cursor.execute(
         "SELECT id_categoria FROM categorias WHERE LOWER(nombre) = LOWER(%s)",
         (nombre_categoria,),
@@ -113,10 +91,6 @@ def _obtener_o_crear_categoria(cursor, nombre_categoria):
 
 def insertar_producto(nombre, categoria, descripcion, precio, stock,
                        icono="💊", id_proveedor=None):
-    """
-    'categoria' llega como texto desde el formulario; se busca (o crea)
-    su id_categoria porque productos.id_categoria es una FK obligatoria.
-    """
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -135,10 +109,74 @@ def insertar_producto(nombre, categoria, descripcion, precio, stock,
         conexion.close()
 
 
-# =========================================================
-#  CLIENTES  (tabla clientes + tabla consultas_clientes)
-# =========================================================
+def obtener_producto_por_id(id_producto):
+    """SELECT de un producto por su PK (para cargar el formulario de edición)."""
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            """
+            SELECT p.id_producto, p.nombre, p.precio, p.stock, p.descripcion,
+                   p.icono, c.nombre AS categoria
+            FROM productos p
+            JOIN categorias c ON p.id_categoria = c.id_categoria
+            WHERE p.id_producto = %s
+            """,
+            (id_producto,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conexion.close()
 
+
+def actualizar_producto(id_producto, nombre, categoria, descripcion, precio, stock):
+    """UPDATE parametrizado con WHERE por PK."""
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        id_categoria = _obtener_o_crear_categoria(cursor, categoria)
+        cursor.execute(
+            """
+            UPDATE productos
+            SET nombre = %s,
+                id_categoria = %s,
+                descripcion = %s,
+                precio = %s,
+                stock = %s
+            WHERE id_producto = %s
+            """,
+            (nombre, id_categoria, descripcion, precio, stock, id_producto),
+        )
+        conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_producto(id_producto):
+    """
+    DELETE parametrizado con WHERE por PK.
+    Devuelve True si eliminó, False si hubo error (FK en uso).
+    """
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("DELETE FROM productos WHERE id_producto = %s", (id_producto,))
+        conexion.commit()
+        return cursor.rowcount > 0
+    except Exception as error:
+        conexion.rollback()
+        print("Error al eliminar producto:", error)
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+# =========================================================
+#  CLIENTES
+# =========================================================
 def _obtener_o_crear_cliente(cursor, nombre, email):
     cursor.execute("SELECT id_cliente FROM clientes WHERE email = %s", (email,))
     fila = cursor.fetchone()
@@ -153,11 +191,6 @@ def _obtener_o_crear_cliente(cursor, nombre, email):
 
 
 def insertar_cliente(nombre, email, tipo_consulta, asunto, mensaje):
-    """
-    La tabla 'clientes' solo guarda nombre/email. El resto del
-    formulario (tipo_consulta, asunto, mensaje) es una CONSULTA y se
-    guarda en 'consultas_clientes', enlazada por id_cliente.
-    """
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -178,17 +211,7 @@ def insertar_cliente(nombre, email, tipo_consulta, asunto, mensaje):
 # =========================================================
 #  PROVEEDORES
 # =========================================================
-
 def insertar_proveedor(nombre, producto, telefono, email):
-    """
-    OJO: la tabla 'proveedores' de tu esquema NO tiene columna
-    'producto', así que ese dato del formulario no se guarda con este
-    esquema. Si lo necesitas, agrega la columna con:
-
-        ALTER TABLE proveedores ADD COLUMN producto VARCHAR(80);
-
-    y descomenta la versión de abajo que sí la inserta.
-    """
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     try:
@@ -196,11 +219,6 @@ def insertar_proveedor(nombre, producto, telefono, email):
             "INSERT INTO proveedores (nombre, telefono, email) VALUES (%s, %s, %s)",
             (nombre, telefono, email),
         )
-        # Si agregas la columna 'producto', usa en su lugar:
-        # cursor.execute(
-        #     "INSERT INTO proveedores (nombre, telefono, email, producto) VALUES (%s, %s, %s, %s)",
-        #     (nombre, telefono, email, producto),
-        # )
         conexion.commit()
     finally:
         cursor.close()
@@ -208,15 +226,9 @@ def insertar_proveedor(nombre, producto, telefono, email):
 
 
 # =========================================================
-#  PEDIDOS  (tabla pedidos + tabla detalle_pedidos)
+#  PEDIDOS
 # =========================================================
-
 def _obtener_id_cliente_por_nombre(cursor, nombre_cliente):
-    """
-    Usado por el formulario ADMINISTRATIVO de pedidos (formulario_facturacion.html),
-    donde el nombre del cliente se escribe como texto libre. Buscamos por
-    nombre y, si no existe, lo creamos con un email provisional.
-    """
     cursor.execute(
         "SELECT id_cliente FROM clientes WHERE nombre = %s LIMIT 1", (nombre_cliente,)
     )
@@ -234,15 +246,6 @@ def _obtener_id_cliente_por_nombre(cursor, nombre_cliente):
 
 def insertar_pedido(cliente, producto, cantidad, total, estado, fecha, metodo_pago,
                      email_cliente=None):
-    """
-    Registra un pedido.
-
-    - email_cliente=None  -> flujo ADMINISTRATIVO (formulario_facturacion.html):
-      el cliente es texto libre, se busca/crea por nombre.
-    - email_cliente="..."  -> flujo de COMPRA de un usuario autenticado
-      (ruta /comprar): se busca/crea el cliente por su email real, que es
-      más confiable y evita duplicar el mismo cliente con nombres distintos.
-    """
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
@@ -281,13 +284,133 @@ def insertar_pedido(cliente, producto, cantidad, total, estado, fecha, metodo_pa
             (id_pedido, id_producto, cantidad, precio_unitario, subtotal),
         )
 
-        # Descuenta el stock vendido
+        # Descuenta el stock vendido (sin bajar de 0)
         cursor.execute(
-            "UPDATE productos SET stock = stock - %s WHERE id_producto = %s",
+            "UPDATE productos SET stock = GREATEST(stock - %s, 0) WHERE id_producto = %s",
             (cantidad, id_producto),
         )
 
         conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+# =========================================================
+#  CLIENTES - UPDATE y DELETE
+# =========================================================
+
+def obtener_cliente_por_id(id_cliente):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id_cliente, nombre, email FROM clientes WHERE id_cliente = %s",
+            (id_cliente,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_cliente(id_cliente, nombre, email):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            "UPDATE clientes SET nombre = %s, email = %s WHERE id_cliente = %s",
+            (nombre, email, id_cliente),
+        )
+        conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_cliente(id_cliente):
+    """
+    DELETE con borrado en cascada manual.
+    Orden obligatorio por las FK:
+      1. detalle_pedidos (hijos de pedidos)
+      2. pedidos (hijos del cliente)
+      3. consultas_clientes (hijos del cliente)
+      4. clientes (el padre)
+    """
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        # 1. Detalles de pedidos del cliente
+        cursor.execute("""
+            DELETE FROM detalle_pedidos
+            WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = %s)
+        """, (id_cliente,))
+
+        # 2. Pedidos del cliente
+        cursor.execute("DELETE FROM pedidos WHERE id_cliente = %s", (id_cliente,))
+
+        # 3. Consultas del cliente
+        cursor.execute("DELETE FROM consultas_clientes WHERE id_cliente = %s", (id_cliente,))
+
+        # 4. Cliente
+        cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_cliente,))
+
+        conexion.commit()
+        print(f"✅ Cliente {id_cliente} eliminado correctamente (con cascada).")
+        return cursor.rowcount > 0
+    except Exception as error:
+        conexion.rollback()
+        print(f"❌ Error al eliminar cliente {id_cliente}: {error}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+# =========================================================
+#  PROVEEDORES - UPDATE y DELETE
+# =========================================================
+
+def obtener_proveedor_por_id(id_proveedor):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id_proveedor, nombre, telefono, email FROM proveedores WHERE id_proveedor = %s",
+            (id_proveedor,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_proveedor(id_proveedor, nombre, telefono, email):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            "UPDATE proveedores SET nombre = %s, telefono = %s, email = %s WHERE id_proveedor = %s",
+            (nombre, telefono, email, id_proveedor),
+        )
+        conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_proveedor(id_proveedor):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        # Desvincula productos que lo referencian (poner id_proveedor = NULL)
+        cursor.execute("UPDATE productos SET id_proveedor = NULL WHERE id_proveedor = %s", (id_proveedor,))
+        cursor.execute("DELETE FROM proveedores WHERE id_proveedor = %s", (id_proveedor,))
+        conexion.commit()
+        return cursor.rowcount > 0
+    except Exception as error:
+        conexion.rollback()
+        print("Error al eliminar proveedor:", error)
+        return False
     finally:
         cursor.close()
         conexion.close()

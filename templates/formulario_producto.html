@@ -6,10 +6,12 @@
 <div class="container my-5" style="padding-top: 100px;">
   <section class="mb-5 pt-4">
     <h2 class="section-title">{{ titulo_formulario }}</h2>
-    <p class="text-muted">Completa el siguiente formulario. Los campos marcados con <span class="text-danger">*</span> son obligatorios.</p>
+    <p class="text-muted">Completa el siguiente formulario. Los campos con <span class="text-danger">*</span> son obligatorios.</p>
 
     <div class="form-dark-panel p-4 rounded-4">
-      <form method="POST" novalidate>
+      <form method="POST"
+            action="{% if producto %}{{ url_for('editar_producto', id_producto=producto.id_producto) }}{% else %}{{ url_for('nuevo_producto') }}{% endif %}"
+            novalidate>
         {{ form.hidden_tag() }}
 
         <div class="row g-3">
