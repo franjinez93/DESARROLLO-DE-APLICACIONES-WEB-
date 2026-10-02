@@ -85,7 +85,10 @@ CREATE TABLE usuarios (
     password_hash   VARCHAR(255) NOT NULL,
     rol             VARCHAR(20)  NOT NULL DEFAULT 'cliente'
                     CHECK (rol IN ('admin', 'cliente')),
-    fecha_registro  TIMESTAMP    NOT NULL DEFAULT NOW()
+    fecha_registro  TIMESTAMP    NOT NULL DEFAULT NOW(),
+    id_cliente      INTEGER      UNIQUE
+                                 REFERENCES clientes(id_cliente)
+                                 ON DELETE CASCADE
 );
 -- NOTA: no insertes filas aquí con INSERT normal. La contraseña debe
 -- quedar encriptada con el mismo algoritmo que usa Flask (Werkzeug),

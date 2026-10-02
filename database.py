@@ -1,6 +1,13 @@
 """
 database.py
 Funciones de acceso a datos contra PostgreSQL (base 'farmacia_central').
+
+Incluye:
+  - Usuarios (login, registro) vinculados a clientes por FK (id_cliente)
+  - Productos: CRUD completo
+  - Clientes: CRUD completo con borrado en cascada
+  - Proveedores: CRUD completo
+  - Pedidos: inserción con detalle y actualización de stock
 """
 
 from psycopg2.extras import RealDictCursor
@@ -19,7 +26,7 @@ def init_db():
 
 
 # =========================================================
-#  USUARIOS
+#  USUARIOS (con FK opcional a clientes)
 # =========================================================
 def obtener_usuario_por_email(email):
     conexion = obtener_conexion()
@@ -50,17 +57,44 @@ def obtener_usuario_por_id(id_usuario):
 
 
 def crear_usuario(nombre, email, password_plano, rol="cliente"):
+    """
+    Crea un usuario nuevo. Si el rol es 'cliente':
+      - Busca o crea su fila en la tabla clientes (por email)
+      - Vincula usuarios.id_cliente con la FK
+    Los admins se crean con id_cliente = NULL.
+    """
     password_hash = generate_password_hash(password_plano)
+    email_limpio = email.strip().lower()
+
     conexion = obtener_conexion()
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
+        id_cliente = None
+
+        if rol == "cliente":
+            # Buscar si ya existe el cliente con ese email
+            cursor.execute(
+                "SELECT id_cliente FROM clientes WHERE email = %s",
+                (email_limpio,),
+            )
+            fila = cursor.fetchone()
+            if fila:
+                id_cliente = fila["id_cliente"]
+            else:
+                # Crear la fila en clientes
+                cursor.execute(
+                    "INSERT INTO clientes (nombre, email) VALUES (%s, %s) RETURNING id_cliente",
+                    (nombre.strip(), email_limpio),
+                )
+                id_cliente = cursor.fetchone()["id_cliente"]
+
         cursor.execute(
             """
-            INSERT INTO usuarios (nombre, email, password_hash, rol)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO usuarios (nombre, email, password_hash, rol, id_cliente)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING id_usuario
             """,
-            (nombre.strip(), email.strip().lower(), password_hash, rol),
+            (nombre.strip(), email_limpio, password_hash, rol, id_cliente),
         )
         id_usuario = cursor.fetchone()["id_usuario"]
         conexion.commit()
@@ -175,7 +209,7 @@ def eliminar_producto(id_producto):
 
 
 # =========================================================
-#  CLIENTES
+#  CLIENTES - CRUD COMPLETO
 # =========================================================
 def _obtener_o_crear_cliente(cursor, nombre, email):
     cursor.execute("SELECT id_cliente FROM clientes WHERE email = %s", (email,))
@@ -208,8 +242,79 @@ def insertar_cliente(nombre, email, tipo_consulta, asunto, mensaje):
         conexion.close()
 
 
+def obtener_cliente_por_id(id_cliente):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id_cliente, nombre, email FROM clientes WHERE id_cliente = %s",
+            (id_cliente,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_cliente(id_cliente, nombre, email):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            "UPDATE clientes SET nombre = %s, email = %s WHERE id_cliente = %s",
+            (nombre, email, id_cliente),
+        )
+        conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_cliente(id_cliente):
+    """
+    DELETE con cascada:
+      1. Borra detalle_pedidos de los pedidos del cliente
+      2. Borra pedidos del cliente
+      3. Borra consultas_clientes del cliente
+      4. Borra el cliente
+      5. PostgreSQL borra AUTOMÁTICAMENTE los usuarios asociados
+         (FK usuarios.id_cliente → clientes.id_cliente con ON DELETE CASCADE)
+
+    Si aún no agregaste la FK a la BD, esta función también funciona
+    porque fuerza el DELETE de usuarios huérfanos por email.
+    """
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        # 1. Detalles de pedidos del cliente
+        cursor.execute("""
+            DELETE FROM detalle_pedidos
+            WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = %s)
+        """, (id_cliente,))
+
+        # 2. Pedidos del cliente
+        cursor.execute("DELETE FROM pedidos WHERE id_cliente = %s", (id_cliente,))
+
+        # 3. Consultas del cliente
+        cursor.execute("DELETE FROM consultas_clientes WHERE id_cliente = %s", (id_cliente,))
+
+        # 4. Cliente (PostgreSQL borra usuarios en cascada SI la FK existe)
+        cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_cliente,))
+
+        conexion.commit()
+        print(f"✅ Cliente {id_cliente} eliminado correctamente (con cascada).")
+        return cursor.rowcount > 0
+    except Exception as error:
+        conexion.rollback()
+        print(f"❌ Error al eliminar cliente {id_cliente}: {error}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
 # =========================================================
-#  PROVEEDORES
+#  PROVEEDORES - CRUD COMPLETO
 # =========================================================
 def insertar_proveedor(nombre, producto, telefono, email):
     conexion = obtener_conexion()
@@ -220,6 +325,55 @@ def insertar_proveedor(nombre, producto, telefono, email):
             (nombre, telefono, email),
         )
         conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_proveedor_por_id(id_proveedor):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            "SELECT id_proveedor, nombre, telefono, email FROM proveedores WHERE id_proveedor = %s",
+            (id_proveedor,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_proveedor(id_proveedor, nombre, telefono, email):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            "UPDATE proveedores SET nombre = %s, telefono = %s, email = %s WHERE id_proveedor = %s",
+            (nombre, telefono, email, id_proveedor),
+        )
+        conexion.commit()
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_proveedor(id_proveedor):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:
+        # Desvincula productos que lo referencian
+        cursor.execute(
+            "UPDATE productos SET id_proveedor = NULL WHERE id_proveedor = %s",
+            (id_proveedor,),
+        )
+        cursor.execute("DELETE FROM proveedores WHERE id_proveedor = %s", (id_proveedor,))
+        conexion.commit()
+        return cursor.rowcount > 0
+    except Exception as error:
+        conexion.rollback()
+        print("Error al eliminar proveedor:", error)
+        return False
     finally:
         cursor.close()
         conexion.close()
@@ -291,126 +445,6 @@ def insertar_pedido(cliente, producto, cantidad, total, estado, fecha, metodo_pa
         )
 
         conexion.commit()
-    finally:
-        cursor.close()
-        conexion.close()
-
-# =========================================================
-#  CLIENTES - UPDATE y DELETE
-# =========================================================
-
-def obtener_cliente_por_id(id_cliente):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    try:
-        cursor.execute(
-            "SELECT id_cliente, nombre, email FROM clientes WHERE id_cliente = %s",
-            (id_cliente,),
-        )
-        return cursor.fetchone()
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-def actualizar_cliente(id_cliente, nombre, email):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    try:
-        cursor.execute(
-            "UPDATE clientes SET nombre = %s, email = %s WHERE id_cliente = %s",
-            (nombre, email, id_cliente),
-        )
-        conexion.commit()
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-def eliminar_cliente(id_cliente):
-    """
-    DELETE con borrado en cascada manual.
-    Orden obligatorio por las FK:
-      1. detalle_pedidos (hijos de pedidos)
-      2. pedidos (hijos del cliente)
-      3. consultas_clientes (hijos del cliente)
-      4. clientes (el padre)
-    """
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    try:
-        # 1. Detalles de pedidos del cliente
-        cursor.execute("""
-            DELETE FROM detalle_pedidos
-            WHERE id_pedido IN (SELECT id_pedido FROM pedidos WHERE id_cliente = %s)
-        """, (id_cliente,))
-
-        # 2. Pedidos del cliente
-        cursor.execute("DELETE FROM pedidos WHERE id_cliente = %s", (id_cliente,))
-
-        # 3. Consultas del cliente
-        cursor.execute("DELETE FROM consultas_clientes WHERE id_cliente = %s", (id_cliente,))
-
-        # 4. Cliente
-        cursor.execute("DELETE FROM clientes WHERE id_cliente = %s", (id_cliente,))
-
-        conexion.commit()
-        print(f"✅ Cliente {id_cliente} eliminado correctamente (con cascada).")
-        return cursor.rowcount > 0
-    except Exception as error:
-        conexion.rollback()
-        print(f"❌ Error al eliminar cliente {id_cliente}: {error}")
-        return False
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-# =========================================================
-#  PROVEEDORES - UPDATE y DELETE
-# =========================================================
-
-def obtener_proveedor_por_id(id_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=RealDictCursor)
-    try:
-        cursor.execute(
-            "SELECT id_proveedor, nombre, telefono, email FROM proveedores WHERE id_proveedor = %s",
-            (id_proveedor,),
-        )
-        return cursor.fetchone()
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-def actualizar_proveedor(id_proveedor, nombre, telefono, email):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    try:
-        cursor.execute(
-            "UPDATE proveedores SET nombre = %s, telefono = %s, email = %s WHERE id_proveedor = %s",
-            (nombre, telefono, email, id_proveedor),
-        )
-        conexion.commit()
-    finally:
-        cursor.close()
-        conexion.close()
-
-
-def eliminar_proveedor(id_proveedor):
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    try:
-        # Desvincula productos que lo referencian (poner id_proveedor = NULL)
-        cursor.execute("UPDATE productos SET id_proveedor = NULL WHERE id_proveedor = %s", (id_proveedor,))
-        cursor.execute("DELETE FROM proveedores WHERE id_proveedor = %s", (id_proveedor,))
-        conexion.commit()
-        return cursor.rowcount > 0
-    except Exception as error:
-        conexion.rollback()
-        print("Error al eliminar proveedor:", error)
-        return False
     finally:
         cursor.close()
         conexion.close()
